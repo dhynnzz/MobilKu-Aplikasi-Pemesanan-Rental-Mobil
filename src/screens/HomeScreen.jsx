@@ -16,31 +16,26 @@ import Banner from "../components/Banner";
 import ListCategory from "../components/ListCategory";
 import ListBlog from "../components/ListBlog";
 
-export default function HomeScreen({ onNavigate }) {
-  // STATE (menyimpan kategori yang sedang dipilih)
+export default function HomeScreen({ navigation }) {
   const [selectedCategory, setSelectedCategory] = useState("Semua Mobil");
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={colors.white} />
 
-      {/* Header dibuat FIXED di luar ScrollView */}
       <Header />
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <Banner />
-        <BookingWidget onNavigate={onNavigate} />
+        <BookingWidget navigation={navigation} />
         <ListCategory
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}
         />
 
-        {/* TITLE */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Rekomendasi untuk kamu</Text>
         </View>
-
-        {/* LIST ITEM (PROPS) */}
         <ListBlog
           styles={styles}
           selectedCategory={selectedCategory}

@@ -1,14 +1,12 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import { useFonts } from "expo-font";
-import { colors, fontType } from "./assets/theme";
+import { NavigationContainer } from "@react-navigation/native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { fontType } from "./assets/theme";
 
-// Screens
-import HomeScreen from "./src/screens/HomeScreen";
-import BookingsScreen from "./src/screens/BookingsScreen";
-import HistoryScreen from "./src/screens/HistoryScreen";
-import ProfileScreen from "./src/screens/ProfileScreen";
-
+// Navigation
+import Router from "./src/navigation/Router";
 
 export default function App() {
   const [loaded] = useFonts(fontType);
@@ -16,15 +14,10 @@ export default function App() {
   if (!loaded) return null;
 
   return (
-    <View style={styles.container}>
-      <ProfileScreen />
-    </View>
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <Router />
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.white,
-  }
-});

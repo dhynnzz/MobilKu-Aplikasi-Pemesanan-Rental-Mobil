@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Calendar, Clock, Car, ChevronRight } from 'lucide-react-native';
 import { colors } from '../../assets/theme';
 
-export default function BookingWidget() {
+export default function BookingWidget({ navigation }) {
   return (
     <View style={styles.widgetContainer}>
       {/* Row 1: Date */}
@@ -38,7 +38,10 @@ export default function BookingWidget() {
       </TouchableOpacity>
 
       {/* Button */}
-      <TouchableOpacity style={styles.searchButton}>
+      <TouchableOpacity
+        style={styles.searchButton}
+     
+      >
         <Text style={styles.searchButtonText}>Cari Mobil</Text>
       </TouchableOpacity>
     </View>
