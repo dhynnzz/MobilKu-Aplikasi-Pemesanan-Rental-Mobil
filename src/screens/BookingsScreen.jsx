@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import {View,Text,StyleSheet,ScrollView,TouchableOpacity,TextInput,Image,StatusBar,Platform,Dimensions
+import {
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, StatusBar, Platform, Dimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -9,6 +10,10 @@ const { width } = Dimensions.get('window');
 export default function BookingFormScreen() {
   const [days, setDays] = useState(1);
   const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [ktp, setKtp] = useState('');
+  const [address, setAddress] = useState('');
+  const [notes, setNotes] = useState('');
   const car = {
     title: "Toyota Alphard",
     category: "Premium",
@@ -18,7 +23,7 @@ export default function BookingFormScreen() {
     transmission: "Automatic",
     rating: 5.0,
     isAvailable: true,
-    pricePerDay: 1500000, 
+    pricePerDay: 1500000,
   };
 
   const total = car.pricePerDay * days;
@@ -39,10 +44,10 @@ export default function BookingFormScreen() {
           </View>
           <Text style={styles.carNameText}>{car.title}</Text>
           <View style={styles.imageWrapper}>
-            <Image 
-              source={{ uri: car.image }} 
+            <Image
+              source={{ uri: car.image }}
               style={styles.imageInside}
-              resizeMode="cover" 
+              resizeMode="cover"
             />
           </View>
         </View>
@@ -64,6 +69,8 @@ export default function BookingFormScreen() {
 
         {/* INPUT FORM */}
         <View style={styles.formSection}>
+          <Text style={styles.formTitle}>Data Penyewa</Text>
+
           <Text style={styles.label}>Nama Pengemudi</Text>
           <TextInput
             style={styles.input}
@@ -73,28 +80,71 @@ export default function BookingFormScreen() {
             placeholderTextColor="#AAB"
           />
 
-          <Text style={[styles.label, { marginTop: 25 }]}>Durasi Sewa</Text>
+          <Text style={styles.label}>Nomor Telepon</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Contoh: 081234567890"
+            value={phone}
+            onChangeText={setPhone}
+            placeholderTextColor="#AAB"
+            keyboardType="phone-pad"
+            maxLength={13}
+          />
+
+          <Text style={styles.label}>No. KTP / Identitas</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Masukkan 16 digit nomor KTP"
+            value={ktp}
+            onChangeText={setKtp}
+            placeholderTextColor="#AAB"
+            keyboardType="numeric"
+            maxLength={16}
+          />
+
+          <Text style={styles.label}>Alamat Penjemputan</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Masukkan alamat lengkap penjemputan"
+            value={address}
+            onChangeText={setAddress}
+            placeholderTextColor="#AAB"
+          />
+
+          <Text style={styles.label}>Catatan Tambahan</Text>
+          <TextInput
+            style={[styles.input, styles.textArea]}
+            placeholder="Tulis catatan khusus untuk sopir (opsional)"
+            value={notes}
+            onChangeText={setNotes}
+            placeholderTextColor="#AAB"
+            multiline={true}
+            numberOfLines={4}
+            textAlignVertical="top"
+          />
+
+          <Text style={[styles.label, { marginTop: 10 }]}>Durasi Sewa</Text>
           <View style={styles.counterRow}>
             <View>
-                <Text style={styles.daysText}>{days} Hari</Text>
-                <Text style={styles.priceSubText}>Rp {car.pricePerDay.toLocaleString()} / hari</Text>
+              <Text style={styles.daysText}>{days} Hari</Text>
+              <Text style={styles.priceSubText}>Rp {car.pricePerDay.toLocaleString()} / hari</Text>
             </View>
             <View style={styles.counterAction}>
-              <TouchableOpacity 
-                onPress={() => days > 1 && setDays(days - 1)} 
+              <TouchableOpacity
+                onPress={() => days > 1 && setDays(days - 1)}
                 style={[styles.btnRound, days <= 1 && styles.btnDisabled]}
               >
                 <Feather name="minus" size={18} color={days <= 1 ? "#AAA" : "#333"} />
               </TouchableOpacity>
-              <TouchableOpacity 
-                onPress={() => setDays(days + 1)} 
+              <TouchableOpacity
+                onPress={() => setDays(days + 1)}
                 style={[styles.btnRound, { marginLeft: 12, backgroundColor: '#000' }]}
               >
                 <Feather name="plus" size={18} color="#FFF" />
               </TouchableOpacity>
             </View>
           </View>
-          
+
         </View>
       </ScrollView>
 
@@ -104,7 +154,7 @@ export default function BookingFormScreen() {
           <Text style={styles.totalLabel}>Total Bayar</Text>
           <Text style={styles.totalPrice}>Rp {total.toLocaleString()}</Text>
         </View>
-        
+
         <TouchableOpacity activeOpacity={0.8}>
           <LinearGradient
             colors={['#4facfe', '#00f2fe']}
@@ -123,7 +173,7 @@ export default function BookingFormScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFF' },
   content: { paddingBottom: 150 },
-  
+
   header: {
     marginTop: 10,
     paddingHorizontal: 25,
@@ -164,7 +214,7 @@ const styles = StyleSheet.create({
   imageWrapper: {
     width: width - 50,
     height: 220,
-    backgroundColor: '#F5F8FB', 
+    backgroundColor: '#F5F8FB',
     borderRadius: 35,
     overflow: 'hidden',
     elevation: 8,
@@ -191,7 +241,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 12,
     borderRadius: 18,
-    flex: 0.3, 
+    flex: 0.3,
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#F0F0F0',
@@ -213,13 +263,27 @@ const styles = StyleSheet.create({
     color: '#1A1A1A',
     marginBottom: 12,
   },
+  formTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#1A1A1A',
+    marginBottom: 25,
+  },
   input: {
-    borderBottomWidth: 1.5,
-    borderColor: '#EEE',
-    paddingVertical: 10,
-    fontSize: 16,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 15,
     color: '#333',
-    marginBottom: 10,
+    marginBottom: 18,
+    borderWidth: 1,
+    borderColor: '#ECECEC',
+  },
+  textArea: {
+    height: 100,
+    textAlignVertical: 'top',
+    paddingTop: 14,
   },
 
   counterRow: {
@@ -257,7 +321,7 @@ const styles = StyleSheet.create({
     elevation: 0,
   },
   noteBox: {
-    backgroundColor: '#F9FBF9', 
+    backgroundColor: '#F9FBF9',
     padding: 18,
     borderRadius: 25,
     borderWidth: 1,
@@ -305,7 +369,7 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     borderRadius: 22,
   },
-bookButtonText: {
+  bookButtonText: {
     color: '#FFF',
     fontWeight: '800',
     fontSize: 16,
