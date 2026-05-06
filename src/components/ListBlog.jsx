@@ -1,14 +1,48 @@
+import { useRef, useEffect } from "react";
 import {
-  ScrollView,
-  View,
-  StyleSheet,
-  Text,
-  ImageBackground,
-  Image,
+  ScrollView, View, StyleSheet, Text, ImageBackground, Image, Animated,
 } from "react-native";
 import { colors } from "../../assets/theme";
 import { Car, Fuel, Users, Settings, Star } from "lucide-react-native";
 import { BlogList } from "../Data/blogs";
+
+// Komponen wrapper untuk animasi fade-in + slide-up per card
+function AnimatedCard({ children, index }) {
+  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(60)).current;
+  const scale = useRef(new Animated.Value(0.9)).current;
+
+  useEffect(() => {
+    const delay = index * 200;
+
+    Animated.parallel([
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 800,
+        delay,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: 800,
+        delay,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scale, {
+        toValue: 1,
+        duration: 800,
+        delay,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  return (
+    <Animated.View style={{ opacity, transform: [{ translateY }, { scale }] }}>
+      {children}
+    </Animated.View>
+  );
+}
 
 export default function ListBlog({ styles, selectedCategory }) {
   const filteredData =
@@ -19,60 +53,57 @@ export default function ListBlog({ styles, selectedCategory }) {
   return (
     <ScrollView>
       <View style={styles.listBlog}>
-        {/* ===================== */}
-        {/* LIST MOBIL (VERTICAL) */}
-        {/* ===================== */}
         <View style={itemVertical.listCard}>
-          {filteredData.map((item) => (
-            <View key={item.id} style={itemVertical.cardItem}>
-              <Image
-                style={itemVertical.cardImage}
-                source={{
-                  uri: item.image,
-                }}
-              />
+          {filteredData.map((item, index) => (
+            <AnimatedCard key={item.id} index={index}>
+              <View style={itemVertical.cardItem}>
+                <Image
+                  style={itemVertical.cardImage}
+                  source={{
+                    uri: item.image,
+                  }}
+                />
 
-              <View style={itemVertical.cardContent}>
-                <View style={itemVertical.topContent}>
-                  <View style={{ gap: 5 }}>
-                    <Text style={itemVertical.cardCategory}>
-                      {item.category.toUpperCase()}
-                    </Text>
-                    <Text style={itemVertical.cardTitle}>{item.title}</Text>
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
-                      <Star size={12} color="#FFD700" fill="#FFD700" />
-                      <Text style={{ fontSize: 10, color: colors.grey, fontFamily: "Pjs-Medium" }}>{item.rating}/5.0</Text>
+                <View style={itemVertical.cardContent}>
+                  <View style={itemVertical.topContent}>
+                    <View style={{ gap: 5 }}>
+                      <Text style={itemVertical.cardCategory}>
+                        {item.category.toUpperCase()}
+                      </Text>
+                      <Text style={itemVertical.cardTitle}>{item.title}</Text>
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+                        <Star size={12} color="#FFD700" fill="#FFD700" />
+                        <Text style={{ fontSize: 10, color: colors.grey, fontFamily: "Pjs-Medium" }}>{item.rating}/5.0</Text>
+                      </View>
                     </View>
+
+                    <Car size={20} color={colors.blue} />
                   </View>
 
-                  <Car size={20} color={colors.blue} />
-                </View>
+                  <View style={itemVertical.cardInfo}>
+                    <Fuel size={12} color={colors.grey} />
+                    <Text style={itemVertical.cardText}>{item.fuel}</Text>
 
-                {/* Info mobil */}
-                <View style={itemVertical.cardInfo}>
-                  <Fuel size={12} color={colors.grey} />
-                  <Text style={itemVertical.cardText}>{item.fuel}</Text>
+                    <Users size={12} color={colors.grey} />
+                    <Text style={itemVertical.cardText}>{item.seat}</Text>
 
-                  <Users size={12} color={colors.grey} />
-                  <Text style={itemVertical.cardText}>{item.seat}</Text>
+                    <Settings size={12} color={colors.grey} />
+                    <Text style={itemVertical.cardText}>{item.transmission === "Automatic" ? "Auto" : "MT"}</Text>
+                  </View>
 
-                  <Settings size={12} color={colors.grey} />
-                  <Text style={itemVertical.cardText}>{item.transmission === "Automatic" ? "Auto" : "MT"}</Text>
-                </View>
+                  <View style={itemVertical.bottomContent}>
+                    <Text style={itemVertical.price}>{item.price}</Text>
 
-                {/* Harga + Tombol */}
-                <View style={itemVertical.bottomContent}>
-                  <Text style={itemVertical.price}>{item.price}</Text>
-
-                  <Text style={[
-                    itemVertical.button,
-                    { backgroundColor: item.isAvailable ? colors.blue : "#d9d9d9", color: item.isAvailable ? colors.white : "#7a7a7a" }
-                  ]}>
-                    {item.isAvailable ? "Sewa" : "Habis"}
-                  </Text>
+                    <Text style={[
+                      itemVertical.button,
+                      { backgroundColor: item.isAvailable ? colors.blue : "#d9d9d9", color: item.isAvailable ? colors.white : "#7a7a7a" }
+                    ]}>
+                      {item.isAvailable ? "Sewa" : "Habis"}
+                    </Text>
+                  </View>
                 </View>
               </View>
-            </View>
+            </AnimatedCard>
           ))}
         </View>
       </View>
@@ -80,9 +111,6 @@ export default function ListBlog({ styles, selectedCategory }) {
   );
 }
 
-/* ===================== */
-/* STYLE VERTICAL (LIST) */
-/* ===================== */
 const itemVertical = StyleSheet.create({
   listCard: {
     paddingHorizontal: 24,
@@ -158,9 +186,6 @@ const itemVertical = StyleSheet.create({
   },
 });
 
-/* ===================== */
-/* STYLE HORIZONTAL */
-/* ===================== */
 const itemHorizontal = StyleSheet.create({
   cardItem: {
     width: 280,
