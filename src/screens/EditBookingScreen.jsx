@@ -1,11 +1,22 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, StatusBar, Platform, Dimensions, ActivityIndicator, Alert
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Image,
+  StatusBar,
+  Platform,
+  Dimensions,
+  ActivityIndicator,
+  Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { colors } from '../../assets/theme';
 import axios from 'axios';
 import { getSettings } from '../Data/settings';
 import { translate } from '../Data/translations';
@@ -13,58 +24,40 @@ import { translate } from '../Data/translations';
 const { width } = Dimensions.get('window');
 const MOCKAPI_URL = "https://6a126eb278d0434e0d5d3393.mockapi.io/bookings";
 
-export default function BookingFormScreen({ route, navigation }) {
-  const [days, setDays] = useState(route?.params?.days || 1);
-  const [rentDate, setRentDate] = useState(route?.params?.dateRange || "25 Mei 2026 - 27 Mei 2026");
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [ktp, setKtp] = useState('');
-  const [address, setAddress] = useState('');
-  const [notes, setNotes] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [settings, setSettings] = useState(getSettings());
+export default function EditBookingScreen({ route, navigation }) {
+  const { booking } = route.params;
+  const [settings] = useState(getSettings());
+  const lang = settings.language;
+  const monthLabel = lang === 'id' ? 'Mei 2026' : 'May 2026';
 
-  useFocusEffect(
-    useCallback(() => {
-      setSettings(getSettings());
-    }, [])
-  );
+  const [days, setDays] = useState(booking.days || 1);
+  const [rentDate, setRentDate] = useState(booking.rentDate || `25 ${monthLabel} - 27 ${monthLabel}`);
+  const [name, setName] = useState(booking.name || '');
+  const [phone, setPhone] = useState(booking.phone || '');
+  const [ktp, setKtp] = useState(booking.ktp || '');
+  const [address, setAddress] = useState(booking.address || '');
+  const [notes, setNotes] = useState(booking.notes || '');
+  const [loading, setLoading] = useState(false);
+
+  const getStartDay = (dateStr) => {
+    if (!dateStr) return 25;
+    const match = dateStr.match(/^([0-9]+)/);
+    return match ? parseInt(match[1], 10) : 25;
+  };
 
   React.useEffect(() => {
-    if (route?.params?.days) {
-      setDays(route?.params?.days);
-    }
-    if (route?.params?.dateRange) {
-      setRentDate(route?.params?.dateRange);
-    }
-  }, [route?.params?.days, route?.params?.dateRange]);
+    const startDay = getStartDay(booking.rentDate);
+    const start = `${startDay} ${monthLabel}`;
+    const endDay = startDay + days;
+    const end = `${endDay} ${monthLabel}`;
+    setRentDate(`${start} - ${end}`);
+  }, [days]);
 
-  const parsePrice = (priceStr) => {
-    if (typeof priceStr === 'number') return priceStr;
-    if (!priceStr) return 0;
-    // Remove "Rp", dots, spaces, "/ hari"
-    const cleaned = priceStr.replace(/[^0-9]/g, '');
-    return parseInt(cleaned, 10) || 0;
-  };
-
-  const defaultCar = {
-    title: "Toyota Alphard",
-    category: "Premium",
-    image: "https://i.pinimg.com/1200x/58/b6/7f/58b67f5462f233e50be13ff1fb371a72.jpg",
-    fuel: "Bensin",
-    seat: "7 Seat",
-    transmission: "Automatic",
-    rating: 5.0,
-    isAvailable: true,
-    price: "Rp 1.500.000 / hari",
-  };
-
-  const car = route?.params?.car || defaultCar;
-  const pricePerDay = parsePrice(car.price || car.pricePerDay);
+  // Hitung harga per hari secara dinamis berdasarkan data pemesanan sebelumnya
+  const pricePerDay = (booking.totalPrice && booking.days) ? (booking.totalPrice / booking.days) : 0;
   const total = pricePerDay * days;
 
-  const handleBooking = async () => {
-    const lang = settings.language;
+  const handleUpdate = async () => {
     if (!name.trim() || !phone.trim() || !ktp.trim() || !address.trim()) {
       Alert.alert(
         translate("incompleteDataTitle", lang), 
@@ -75,39 +68,27 @@ export default function BookingFormScreen({ route, navigation }) {
 
     setLoading(true);
     try {
-      const bookingData = {
+      const updatedData = {
         name,
         phone,
         ktp,
         address,
         notes,
-        carTitle: car.title,
-        carImage: car.image,
-        carCategory: car.category,
         days,
         rentDate,
         totalPrice: total,
-        createdAt: new Date().toISOString(),
       };
 
-      await axios.post(MOCKAPI_URL, bookingData);
+      await axios.put(`${MOCKAPI_URL}/${booking.id}`, updatedData);
 
       Alert.alert(
-        translate("bookingSuccessTitle", lang),
-        translate("bookingSuccessMsg", lang),
+        lang === 'id' ? "Pembaruan Berhasil" : "Update Successful",
+        lang === 'id' ? "Pesanan rental mobil Anda berhasil diperbarui!" : "Your car rental order has been successfully updated!",
         [
           {
             text: "OK",
             onPress: () => {
-              // Reset Form
-              setName('');
-              setPhone('');
-              setKtp('');
-              setAddress('');
-              setNotes('');
-              setDays(1);
-              // Navigate to Riwayat tab
-              navigation.navigate("Riwayat");
+              navigation.goBack();
             }
           }
         ]
@@ -115,8 +96,8 @@ export default function BookingFormScreen({ route, navigation }) {
     } catch (error) {
       console.error(error);
       Alert.alert(
-        translate("failedBookingTitle", lang), 
-        translate("failedBookingMsg", lang)
+        lang === 'id' ? "Gagal Memperbarui" : "Update Failed",
+        lang === 'id' ? "Terjadi kesalahan koneksi ke server. Silakan coba lagi." : "Server connection error occurred. Please try again."
       );
     } finally {
       setLoading(false);
@@ -125,46 +106,41 @@ export default function BookingFormScreen({ route, navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFF" />
+      
+      {/* HEADER NAVIGASI */}
+      <View style={styles.navHeader}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Feather name="arrow-left" size={24} color={colors.black} />
+        </TouchableOpacity>
+        <Text style={styles.navTitle}>{lang === 'id' ? "Ubah Pemesanan" : "Edit Booking"}</Text>
+        <View style={{ width: 40 }} />
+      </View>
+
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* DETAIL MOBIL YANG DI-RENTAL */}
         <View style={styles.header}>
           <View style={styles.badgeRow}>
             <View style={styles.categoryBadge}>
-              <Text style={styles.categoryText}>{car.category}</Text>
+              <Text style={styles.categoryText}>{booking.carCategory}</Text>
             </View>
-            <View style={styles.ratingBox}>
-              <Feather name="star" size={14} color="#FFD700" fill="#FFD700" />
-              <Text style={styles.ratingText}>{car.rating}</Text>
+            <View style={styles.statusBadge}>
+              <Text style={styles.statusText}>{translate("activeStatus", settings.language)}</Text>
             </View>
           </View>
-          <Text style={styles.carNameText}>{car.title}</Text>
+          <Text style={styles.carNameText}>{booking.carTitle}</Text>
           <View style={styles.imageWrapper}>
             <Image
-              source={{ uri: car.image }}
+              source={{ uri: booking.carImage }}
               style={styles.imageInside}
               resizeMode="cover"
             />
           </View>
         </View>
 
-        <View style={styles.infoRow}>
-          <View style={styles.infoBox}>
-            <MaterialCommunityIcons name="gas-station" size={18} color="#4facfe" />
-            <Text style={styles.infoText}>{car.fuel}</Text>
-          </View>
-          <View style={styles.infoBox}>
-            <MaterialCommunityIcons name="car-seat" size={18} color="#4facfe" />
-            <Text style={styles.infoText}>{car.seat}</Text>
-          </View>
-          <View style={styles.infoBox}>
-            <MaterialCommunityIcons name="cog" size={18} color="#4facfe" />
-            <Text style={styles.infoText}>Matic</Text>
-          </View>
-        </View>
-
-        {/* INPUT FORM */}
+        {/* INPUT FORM EDIT */}
         <View style={styles.formSection}>
-          <Text style={styles.formTitle}>{translate("renterInfoTitle", settings.language)}</Text>
+          <Text style={styles.formTitle}>{lang === 'id' ? "Data Penyewa Baru" : "New Renter Information"}</Text>
 
           <Text style={styles.label}>{translate("rentalDateLabel", settings.language)}</Text>
           <View style={styles.dateDisplayBox}>
@@ -245,7 +221,6 @@ export default function BookingFormScreen({ route, navigation }) {
               </TouchableOpacity>
             </View>
           </View>
-
         </View>
       </ScrollView>
 
@@ -256,14 +231,14 @@ export default function BookingFormScreen({ route, navigation }) {
           <Text style={styles.totalPrice}>Rp {total.toLocaleString()}</Text>
         </View>
 
-        <TouchableOpacity activeOpacity={0.8} onPress={handleBooking}>
+        <TouchableOpacity activeOpacity={0.8} onPress={handleUpdate}>
           <LinearGradient
             colors={['#4facfe', '#00f2fe']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.bookButton}
           >
-            <Text style={styles.bookButtonText}>{translate("bookBtn", settings.language)}</Text>
+            <Text style={styles.bookButtonText}>{translate("saveChanges", settings.language)}</Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -280,9 +255,28 @@ export default function BookingFormScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFF' },
   content: { paddingBottom: 150 },
+  
+  navHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F5',
+    backgroundColor: '#FFF',
+  },
+  backButton: {
+    padding: 8,
+  },
+  navTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: colors.black,
+  },
 
   header: {
-    marginTop: 10,
+    marginTop: 20,
     paddingHorizontal: 25,
   },
   badgeRow: {
@@ -298,92 +292,70 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   categoryText: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#666',
     fontWeight: '700',
     textTransform: 'uppercase',
   },
-  ratingBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  statusBadge: {
+    backgroundColor: '#EAFBEA',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
-  ratingText: {
-    marginLeft: 4,
+  statusText: {
+    fontSize: 11,
+    color: '#2E7D32',
     fontWeight: '700',
-    color: '#333',
+    textTransform: 'uppercase',
   },
   carNameText: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '800',
     color: '#1A1A1A',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   imageWrapper: {
     width: width - 50,
-    height: 220,
+    height: 180,
     backgroundColor: '#F5F8FB',
-    borderRadius: 35,
+    borderRadius: 24,
     overflow: 'hidden',
-    elevation: 8,
+    elevation: 6,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.15,
-    shadowRadius: 15,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
   },
   imageInside: {
     width: '100%',
     height: '100%',
   },
 
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 30,
-    paddingHorizontal: 25,
-  },
-  infoBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F9F9F9',
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    borderRadius: 18,
-    flex: 0.3,
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#F0F0F0',
-  },
-  infoText: {
-    marginLeft: 6,
-    fontSize: 11,
-    color: '#444',
-    fontWeight: '700',
-  },
-
   formSection: {
-    marginTop: 35,
+    marginTop: 25,
     paddingHorizontal: 25,
   },
   label: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
     color: '#1A1A1A',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   formTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '800',
     color: '#1A1A1A',
-    marginBottom: 25,
+    marginBottom: 20,
   },
   input: {
     backgroundColor: '#F8F9FA',
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 15,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 14,
     color: '#333',
-    marginBottom: 18,
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: '#ECECEC',
   },
@@ -391,23 +363,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F8F9FA',
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    marginBottom: 18,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: '#ECECEC',
     gap: 12,
   },
   dateDisplayText: {
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: "Poppins-Medium",
     color: '#333',
   },
   textArea: {
-    height: 100,
+    height: 90,
     textAlignVertical: 'top',
-    paddingTop: 14,
+    paddingTop: 12,
   },
 
   counterRow: {
@@ -415,16 +387,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#F8F9FA',
-    padding: 15,
-    borderRadius: 25,
+    padding: 14,
+    borderRadius: 20,
   },
   daysText: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '800',
     color: '#000',
   },
   priceSubText: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#888',
     marginTop: 2,
   },
@@ -432,71 +404,59 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   btnRound: {
-    width: 50,
-    height: 50,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     backgroundColor: '#FFF',
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 3,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
   },
   btnDisabled: {
     backgroundColor: '#F0F0F0',
     elevation: 0,
-  },
-  noteBox: {
-    backgroundColor: '#F9FBF9',
-    padding: 18,
-    borderRadius: 25,
-    borderWidth: 1,
-    borderColor: '#E8F5E8',
-  },
-  noteItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  noteText: {
-    marginLeft: 10,
-    fontSize: 13,
-    color: '#555',
+    shadowOpacity: 0,
   },
 
   footer: {
     position: 'absolute',
     bottom: 0, left: 0, right: 0,
-    padding: 25,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 25,
+    padding: 20,
+    paddingBottom: Platform.OS === 'ios' ? 35 : 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#FFF',
-    borderTopLeftRadius: 35,
-    borderTopRightRadius: 35,
-    elevation: 25,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    elevation: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
+    shadowOffset: { width: 0, height: -8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
   },
   totalLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#999',
   },
   totalPrice: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '900',
     color: '#000',
   },
   bookButton: {
-    paddingHorizontal: 40,
-    paddingVertical: 18,
-    borderRadius: 22,
+    paddingHorizontal: 25,
+    paddingVertical: 14,
+    borderRadius: 18,
   },
   bookButtonText: {
     color: '#FFF',
     fontWeight: '800',
-    fontSize: 16,
+    fontSize: 14,
   },
   loadingOverlay: {
     position: 'absolute',

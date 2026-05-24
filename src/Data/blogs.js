@@ -10,6 +10,10 @@ export const BlogList = [
     rating: 4.8,
     isAvailable: true,
     price: "Rp 350.000 / hari",
+    description: {
+      id: "Mobil keluarga sejuta umat yang andal, efisien, dan sangat nyaman.",
+      en: "The highly reliable, fuel-efficient, and comfortable family car of a million people."
+    },
   },
   {
     id: 2,
@@ -22,6 +26,10 @@ export const BlogList = [
     rating: 4.9,
     isAvailable: true,
     price: "Rp 500.000 / hari",
+    description: {
+      id: "Tangguh menaklukkan medan berat dengan performa mesin diesel tangguh.",
+      en: "Built tough to conquer challenging off-road terrain with robust diesel performance."
+    },
   },
   {
     id: 3,
@@ -34,6 +42,10 @@ export const BlogList = [
     rating: 5.0,
     isAvailable: true,
     price: "Rp 800.000 / hari",
+    description: {
+      id: "Mobil sport coupe premium mewah dengan akselerasi dinamis bertenaga.",
+      en: "Luxury premium sports coupe with powerful, dynamic, and thrilling acceleration."
+    },
   },
   {
     id: 4,
@@ -46,6 +58,10 @@ export const BlogList = [
     rating: 4.9,
     isAvailable: true,
     price: "Rp 600.000 / hari",
+    description: {
+      id: "Desain sporty agresif berpadu dengan mesin VTEC Turbo performa tinggi.",
+      en: "Aggressive sporty design combined with a high-performance VTEC Turbo engine."
+    },
   },
   {
     id: 5,
@@ -58,6 +74,10 @@ export const BlogList = [
     rating: 5.0,
     isAvailable: true,
     price: "Rp 1.500.000 / hari",
+    description: {
+      id: "Kemewahan kabin kelas satu dengan kenyamanan berkendara VIP eksklusif.",
+      en: "Premium first-class cabin luxury offering elite, exclusive VIP passenger comfort."
+    },
   },
   {
     id: 6,
@@ -70,6 +90,10 @@ export const BlogList = [
     rating: 4.7,
     isAvailable: true,
     price: "Rp 550.000 / hari",
+    description: {
+      id: "Crossover modern yang stylish, tangguh, andal, dan penuh fitur canggih.",
+      en: "A modern, stylish, and highly reliable crossover SUV packed with advanced features."
+    },
   },
   {
     id: 7,
@@ -82,5 +106,9 @@ export const BlogList = [
     rating: 4.6,
     isAvailable: true,
     price: "Rp 320.000 / hari",
+    description: {
+      id: "Sewa minibus andal hemat bahan bakar yang lincah di area perkotaan.",
+      en: "Reliable, highly fuel-efficient family minibus that is agile in urban environments."
+    },
   },
 ];

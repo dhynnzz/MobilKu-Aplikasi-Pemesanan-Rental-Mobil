@@ -1,19 +1,39 @@
+import { useState, useCallback } from "react";
 import { View, Text, Image, StyleSheet } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { Bell } from "lucide-react-native";
 import { colors } from "../../assets/theme";
+import { getProfile } from "../Data/profile";
+import { getSettings } from "../Data/settings";
+import { translate } from "../Data/translations";
 
 export default function Header() {
+  const [profile, setProfile] = useState(getProfile());
+  const [settings, setSettings] = useState(getSettings());
+
+  // Sinkronkan data profil & pengaturan terupdate setiap kali halaman utama difokuskan
+  useFocusEffect(
+    useCallback(() => {
+      setProfile(getProfile());
+      setSettings(getSettings());
+    }, [])
+  );
+
   return (
     <View style={styles.header}>
       <View>
-        <Text style={styles.greeting}>Halo, Guys 👋</Text>
-        <Text style={styles.subGreeting}>Mau jalan kemana hari ini?</Text>
+        <Text style={styles.greeting}>
+          {translate("greeting", settings.language)}, {profile.name} 👋
+        </Text>
+        <Text style={styles.subGreeting}>
+          {translate("subGreeting", settings.language)}
+        </Text>
       </View>
 
       <View style={styles.headerRight}>
         <Bell color={colors.black} size={22} />
         <Image
-          source={{ uri: "https://i.pravatar.cc/100" }}
+          source={{ uri: profile.avatar || "https://i.pravatar.cc" }}
           style={styles.avatar}
         />
       </View>
