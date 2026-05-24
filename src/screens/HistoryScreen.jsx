@@ -15,11 +15,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Calendar, MapPin, Phone, User, Trash2, Edit3, Car, Clock } from 'lucide-react-native';
 import { colors } from '../../assets/theme';
-import axios from 'axios';
 import { getSettings } from '../Data/settings';
 import { translate } from '../Data/translations';
-
-const MOCKAPI_URL = "https://6a126eb278d0434e0d5d3393.mockapi.io/bookings";
+import { supabase } from '../libs/supabase';
 
 export default function HistoryScreen() {
   const navigation = useNavigation();
@@ -30,10 +28,13 @@ export default function HistoryScreen() {
 
   const getBookings = async () => {
     try {
-      const response = await axios.get(MOCKAPI_URL);
-      // Sort bookings by creation date descending
-      const sortedBookings = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      setBookings(sortedBookings);
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('*')
+        .order('createdAt', { ascending: false });
+
+      if (error) throw error;
+      setBookings(data || []);
     } catch (error) {
       console.error(error);
       const lang = settings.language;
@@ -72,7 +73,13 @@ export default function HistoryScreen() {
           onPress: async () => {
             setLoading(true);
             try {
-              await axios.delete(`${MOCKAPI_URL}/${id}`);
+              const { error } = await supabase
+                .from('bookings')
+                .delete()
+                .eq('id', id);
+
+              if (error) throw error;
+
               Alert.alert(
                 lang === 'id' ? "Sukses" : "Success", 
                 translate("cancelSuccess", lang)

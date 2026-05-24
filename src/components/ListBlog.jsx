@@ -5,9 +5,10 @@ import {
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { colors } from "../../assets/theme";
 import { Car, Fuel, Users, Settings, Star, Heart, X } from "lucide-react-native";
-import { BlogList } from "../Data/blogs";
 import { getFavorites, addFavorite, removeFavorite } from "../Data/favorites";
 import { translate } from "../Data/translations";
+import { supabase } from "../libs/supabase";
+import { ActivityIndicator } from "react-native";
 
 // Komponen wrapper untuk animasi fade-in + slide-up per card
 function AnimatedCard({ children, index }) {
@@ -50,6 +51,30 @@ function AnimatedCard({ children, index }) {
 export default function ListBlog({ styles, selectedCategory, searchQuery, durasi, dateRange, language = "id" }) {
   const navigation = useNavigation();
   const [favorites, setFavorites] = useState([]);
+  const [cars, setCars] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchCars = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.from('cars').select('*').order('id', { ascending: true });
+      if (error) throw error;
+      
+      const formattedData = data.map(car => ({
+        ...car,
+        description: {
+          id: car.description_id,
+          en: car.description_en
+        }
+      }));
+      setCars(formattedData);
+    } catch (error) {
+      console.error('Error fetching cars:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const [selectedCar, setSelectedCar] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -67,6 +92,7 @@ export default function ListBlog({ styles, selectedCategory, searchQuery, durasi
   useFocusEffect(
     useCallback(() => {
       setFavorites(getFavorites());
+      fetchCars();
     }, [])
   );
 
@@ -80,7 +106,7 @@ export default function ListBlog({ styles, selectedCategory, searchQuery, durasi
     }
   };
 
-  const filteredData = BlogList
+  const filteredData = cars
     .filter((item) => selectedCategory === "Semua Mobil" || item.category === selectedCategory)
     .filter((item) => item.title.toLowerCase().includes((searchQuery || "").toLowerCase()));
 
@@ -88,7 +114,10 @@ export default function ListBlog({ styles, selectedCategory, searchQuery, durasi
     <ScrollView>
       <View style={styles.listBlog}>
         <View style={itemVertical.listCard}>
-          {filteredData.map((item, index) => (
+          {loading ? (
+            <ActivityIndicator size="large" color={colors.blue} style={{ marginVertical: 50 }} />
+          ) : (
+            filteredData.map((item, index) => (
             <AnimatedCard key={item.id} index={index}>
               <View style={itemVertical.cardItem}>
                 <TouchableOpacity activeOpacity={0.8} onPress={() => openCarModal(item)}>
@@ -115,9 +144,7 @@ export default function ListBlog({ styles, selectedCategory, searchQuery, durasi
                         <Star size={10} color="#FFD700" fill="#FFD700" />
                         <Text style={{ fontSize: 9, color: colors.grey, fontFamily: "Pjs-Medium" }}>{item.rating}/5.0</Text>
                       </View>
-                      <Text style={itemVertical.cardDescription} numberOfLines={1}>
-                        {typeof item.description === "object" ? item.description[language] : item.description}
-                      </Text>
+
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -163,7 +190,7 @@ export default function ListBlog({ styles, selectedCategory, searchQuery, durasi
                 </View>
               </View>
             </AnimatedCard>
-          ))}
+          )))}
         </View>
       </View>
 

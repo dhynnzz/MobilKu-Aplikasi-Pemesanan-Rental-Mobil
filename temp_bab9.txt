@@ -1,0 +1,1042 @@
+SUPABASE
+Tujuan Pembelajaran : 
+Mahasiswa dapat memahami konsep dari Supabase
+Mahasiswa dapat menggunakan Supabase Database untuk menyimpan data
+Mahasiswa dapat menggunakan Supabase Storage untuk menyimpan berkas
+Software yang dibutuhkan : 
+Node.Js
+Visual Studio Code
+Pengertian
+Supabase
+Supabase adalah platform pengembangan aplikasi sumber terbuka (open-source). Platform yang menyediakan berbagai layanan untuk mempercepat pengembangan aplikasi dengan memanfaatkan teknologi basis data relasional, tanpa perlu mengelola infrastruktur server secara mandiri. Supabase menyediakan berbagai layanan termasuk basis data relasional (PostgreSQL), otentikasi pengguna, penyimpanan berkas (storage), fungsi serverless, dan kemampuan realtime.
+Supabase berfungsi sebagai Backend as a Service (BaaS) yang memungkinkan pengembang aplikasi untuk fokus pada pengembangan frontend menggunakan skema data yang terstruktur tanpa harus khawatir tentang manajemen database atau server yang rumit. Supabase menyediakan SDK yang mudah digunakan untuk berbagai layanan, di mana infrastruktur server dikelola sepenuhnya oleh Supabase.
+Supabase Database
+Supabase Database adalah layanan basis data relasional berbasis cloud yang menggunakan mesin PostgreSQL untuk menyimpan, mengelola, dan mengambil data secara terstruktur. Supabase Database menyimpan data dalam bentuk tabel yang terdiri dari baris dan kolom, yang memungkinkan adanya hubungan (relationship) antar data yang kompleks dan kuat.
+Supabase Database mendukung fitur-fitur seperti kueri SQL yang sangat canggih, sinkronisasi data secara realtime, dan keamanan data tingkat tinggi melalui kebijakan Row Level Security (RLS) yang terintegrasi langsung dengan autentikasi pengguna. Layanan ini sangat berguna dalam pengembangan aplikasi yang membutuhkan integritas data yang ketat, skema data yang terorganisir, serta kemampuan untuk menangani relasi data yang rumit.
+Supabase Storage
+Supabase Storage adalah layanan penyimpanan objek berbasis cloud yang digunakan untuk menyimpan, mengelola, dan menyajikan berkas berukuran besar secara aman dan efisien. Berbeda dengan database yang menyimpan teks atau angka, Storage dirancang khusus untuk menangani berkas fisik seperti gambar, video, dan dokumen lainnya. Supabase Storage mengorganisasi berkas-berkas ini ke dalam "Buckets" yang berfungsi sebagai wadah utama untuk mengelompokkan data berdasarkan kategori atau izin akses tertentu.
+Supabase Storage mendukung fitur-fitur seperti manajemen berkas yang mudah melalui SDK (Software Development Kit), integrasi dengan CDN (Content Delivery Network) untuk pengiriman data yang cepat, serta keamanan data yang ketat melalui Row Level Security (RLS) di PostgreSQL. Layanan ini sangat berguna dalam pengembangan aplikasi yang membutuhkan penyimpanan aset media yang skalabel.
+Authentication
+Autentikasi (Authentication) adalah proses verifikasi identitas pengguna untuk memastikan bahwa mereka adalah orang yang sebenarnya yang memiliki hak akses ke sistem atau aplikasi tertentu. Data yang perlu dimasukan ketika autentikasi biasanya hanya diketahui oleh pengguna atau bersifat pribadi. Sehingga apabila pada proses autentikasi terjadi ketidakcocokan maka autentikasi tidak akan berhasil. Tujuan utama dari autentikasi adalah menjaga keamanan data yang berada pada akun. Jenis – jenis autentikasi yaitu :
+Email dan Kata Sandi (Email and Password) : Pengguna memasukkan alamat email dan kata sandi untuk mengakses akun mereka.
+Autentikasi Sosial (Social Authentication): Menggunakan akun media sosial seperti Google, Facebook, atau Twitter untuk login.
+Biometrik : Menggunakan identitas biologi seseorang seperti sidik jari, pengenalan wajah atau retina, serta pengenalan suara
+OTP (one-time password) : Adalah password sementara atau password satu kali pakai. Kode OTP merupakan kode atau karakter khusus yang akan dihasilkan secara otomatis untuk pengguna yang hendak login.
+Autentikasi Multi-Faktor (Multi-Factor Authentication) : Menggabungkan dua atau lebih metode autentikasi untuk tingkat keamanan yang lebih tinggi.
+Async Storage
+AsyncStorage adalah library React Native yang digunakan untuk menyimpan data secara lokal di perangkat pengguna. Ini sering digunakan untuk menyimpan token atau data lain yang perlu diakses dan dikelola secara lokal dalam aplikasi. Setelah pengguna berhasil login, token autentikasi biasanya dikeluarkan oleh server. AsyncStorage berguna untuk menyimpan token ini secara lokal pada perangkat pengguna. Ini memungkinkan untuk menyimpan token dengan aman dan menggunakannya pada permintaan berikutnya ke server untuk otentikasi. Selain token, AsyncStorage juga dapat digunakan untuk menyimpan data pengguna lainnya, seperti ID pengguna, nama pengguna, atau preferensi pengguna yang perlu dipertahankan di antara sesi aplikasi. AsyncStorage dapat digunakan untuk melacak apakah pengguna masih masuk atau sudah keluar dari aplikasi. Ini memungkinkan untuk menjaga sesi pengguna, sehingga jika pengguna menutup aplikasi dan membukanya kembali, tidak perlu melakukan login lagi
+Supabase Auth
+Supabase Auth merupakan komponen layanan autentikasi yang disediakan oleh Supabase untuk mengelola identitas pengguna dalam sebuah aplikasi. Layanan ini mencakup proses registrasi, login, logout, serta pengelolaan sesi pengguna secara terintegrasi, sehingga pengembang dapat membangun sistem akses pengguna tanpa harus merancang mekanisme autentikasi dari awal. Dalam konteks pengembangan aplikasi modern, autentikasi menjadi aspek yang sangat penting karena berfungsi sebagai lapisan awal pengamanan untuk memastikan bahwa hanya pengguna dengan kredensial valid yang dapat mengakses sistem.
+Supabase Auth mendukung proses autentikasi berbasis email dan password, sehingga sangat sesuai digunakan pada aplikasi yang membutuhkan proses login yang sederhana namun tetap aman. Selain itu, Supabase Auth juga terhubung langsung dengan RLS (Row Level Security)  pada PostgreSQL, yang memungkinkan pengaturan hak akses data dilakukan secara lebih terstruktur. Dengan pendekatan tersebut, data pengguna dapat dikelola secara lebih aman. penerapan Supabase Auth tidak hanya mempermudah proses pengelolaan pengguna, tetapi juga meningkatkan efisiensi, keamanan, dan keteraturan dalam pengembangan sistem berbasis aplikasi.
+Langkah – langkah praktikum
+Buka project sebelumnya lalu install package yang dibutuhkan untuk menggunakan supabase seperti kode berikut
+Npx expo install @supabase/supabase-js @react-native-async-storage/async-storage react-native-url-polyfill expo-image-picker expo-image-manipulator @expo/react-native-action-sheet
+Lalu buka website supabase https://supabase.com/ pada browser dan masuk menggunakkan akun github, lalu buat juga Organisasi baru.
+Masukkan nama project dan konfigurasi lainnya seperti berikut, Lalu database password klik pada generate a password, kemudian pilih create a project.
+Selanjutnya pilih menu table editor pada sidebar, kemudian new table dan beri nama blogs.
+Selanjutnya beri nama blogs dan buat kolom sesuai dengan gambar dibawah ini, Lalu klik save.
+Selanjutnya beri nama blogs dan buat kolom sesuai dengan gambar dibawah ini, Lalu klik save
+Kemudian masuk pada menu Query Editor dan paste kode berikut lalu run atau jalankan
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.blogs TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.blogs TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.users TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.users TO authenticated;GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO anon;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO authenticated;
+Kemudian masuk pada menu Authentication dan pilih yang Sign in / Providers, lalu matikan menu confirm email dan save changes.
+Masuk pada menu Storage di sidebar kiri, lalu buat bucket baru dengan nama woco dan centang pada public bucket, kemudian klik create.
+Buat folder libs pada src, kemudian buat file supabase.js didalam folder libs dan masukkan source code dibawah ini.
+import 'react-native-url-polyfill/auto';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createClient } from '@supabase/supabase-js';
+const supabaseUrl = 'url';
+const supabaseAnonKey = 'anonkey';
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    storage: AsyncStorage,
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: false,
+  },
+});
+Untuk supabaseUrl masuk ke menu Project Overview pada sidebar kemudian copy, lalu pilih Project Url dan paste di url, Anon key copy yang publishable key
+Tambahkan juga plugin berikut pada file app.json
+Kemudian tambahkan kode berikut pada Profile.jsx yang berada pada folder screens.
+import { SafeAreaView } from "react-native-safe-area-context";
+import { supabase } from "../libs/supabase";
+import { useActionSheet } from "@expo/react-native-action-sheet";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { formatDate } from "../utils/formatDate";
+Tambahkan kode berikut di dalam fungsi Profile pada Profile.jsx
+const [profileData, setProfileData] = useState([]);
+  const { showActionSheetWithOptions } = useActionSheet();
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    await AsyncStorage.removeItem("userData");
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "Login" }],
+    });
+  };
+  const openActionSheet = () => {
+    const options = ["Log out", "Cancel"];
+    const destructiveButtonIndex = 0;
+    const cancelButtonIndex = 1;
+    showActionSheetWithOptions(
+      {
+        options,
+        cancelButtonIndex,
+        destructiveButtonIndex,
+      },
+      (selectedIndex) => {
+        if (selectedIndex === 0) {
+          handleLogout();
+        }
+      }
+    );
+  };
+    const getDataProfile = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data, error } = await supabase
+          .from("users")
+          .select("*")
+          .eq("id", user.id) 
+          .single(); 
+        if (error) throw error;
+        setProfileData(data); 
+      }
+    } catch (error) {
+      console.error("Error fetching profile:", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+Ubah juga pada fungsi onRefresh dan useFocusEffect di dalam fungsi Profile pada Profile.jsx
+const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      getDataProfile();
+      getDataBlog();
+      setRefreshing(false);
+    }, 1500);
+  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      getDataProfile();
+      getDataBlog();
+    }, [])
+  );
+Kemudian ganti pada fungsi getDataBlog yang berada pada file Profile.jsx dengan source code berikut.
+const getDataBlog = async () => {
+    try {
+      const { data, error } = await supabase.from("blogs").select("*");
+      if (error) throw error;
+      setBlogData(data);
+      console.log(data);
+      setLoading(false);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+Kemudian ganti pada return yang ada pada Profile.jsx di dalam folder screens
+<SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={openActionSheet}>
+          <Settings color={colors.black()} size={24} />
+        </TouchableOpacity>
+      </View>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+        <View style={styles.profileHeader}>
+          <Image
+            style={profile.pic}
+            source={{
+              uri: profileData.photo_url,
+              headers: { Authorization: "someAuthToken" },
+            }}
+            contentFit="cover"
+            transition={200}
+            priority="high"
+          />
+          <View style={{ gap: 5, alignItems: "center" }}>
+            <Text style={profile.name}>{profileData.full_name}</Text>
+            <Text style={profile.info}>
+              Member since {formatDate(profileData.created_at)}
+            </Text>
+          </View>
+          <View style={profile.statsContainer}>
+            <View style={profile.statItem}>
+              <Text style={profile.sum}>{profileData.total_post}</Text>
+              <Text style={profile.tag}>Posted</Text>
+            </View>
+            <View style={profile.statItem}>
+              <Text style={profile.sum}>
+                {formatNumber(profileData.following_count)}
+              </Text>
+              <Text style={profile.tag}>Following</Text>
+            </View>
+            <View style={profile.statItem}>
+              <Text style={profile.sum}>
+                {formatNumber(profileData.followers_count)}
+              </Text>
+              <Text style={profile.tag}>Follower</Text>
+            </View>
+          </View>
+          <TouchableOpacity style={profile.buttonEdit}>
+            <Text style={profile.buttonText}>Edit Profile</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.blogList}>
+          {loading ? (
+            <ActivityIndicator size={"large"} color={colors.blue()} />
+          ) : blogData.length > 0 ? (
+            blogData.map((item, index) => <ItemSmall item={item} key={index} />)
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No posts yet.</Text>
+            </View>
+          )}
+        </View>
+      </ScrollView>
+      <Pressable
+        style={({ pressed }) => [
+          styles.floatingButton,
+          {
+            opacity: pressed ? 0.8 : 1,
+            transform: [{ scale: pressed ? 0.95 : 1 }],
+          },
+        ]}
+        onPress={() => navigation.navigate("AddBlog")}
+      >
+        <Edit color={colors.white()} size={20} />
+      </Pressable>
+    </SafeAreaView>
+Pada file BlogDetail.jsx untuk import ganti semuanya dengan source code berikut.
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Animated,
+  ActivityIndicator,
+  Modal,
+  Pressable,
+  Alert,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import React, { useState, useRef, useEffect } from "react";
+import {
+  ArrowLeft,
+  Heart,
+  Bookmark,
+  MessageCircle,
+  Share2,
+  MoreVertical,
+  Edit,
+  Trash,
+} from "lucide-react-native";
+import { useNavigation } from "@react-navigation/native";
+import { Image } from "expo-image";
+import { colors } from "../../assets/theme";
+import { formatNumber } from "../utils/formatNumber";
+import { formatDate } from "../utils/formatDate";
+import { supabase } from "../libs/supabase";
+Pada fungsi getBlogById yang berada pada file BlogDetail.jsx ganti menggunakkan source code berikut 
+const getBlogById = async () => {
+    try {
+      const response = await supabase
+        .from("blogs")
+        .select("*")
+        .eq("id", blogId)
+        .single();
+      setSelectedBlog(response.data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+Pada fungsi handleDelete juga yang berada pada file BlogDetail.jsx ganti menggunakkan source code berikut
+const handleDelete = async () => {
+    Alert.alert(
+      "Delete Blog",
+      "Are you sure you want to delete this blog?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setLoading(true);
+              const { error } = await supabase
+                .from("blogs")
+                .delete()
+                .eq("id", blogId);
+              if (error) throw error;
+              navigation.navigate("MainApp", { screen: "Profile" });
+            } catch (error) {
+              console.error(error);
+              Alert.alert("Error", "Failed to delete blog");
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ],
+      { cancelable: true },
+    );
+  };
+Pada file AddBlogForm.jsx yang berada pada folder screens di bagian import ganti denga source code berikut
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  ScrollView,
+  ActivityIndicator,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
+import { ArrowLeft, Plus, SquarePlus } from "lucide-react-native";
+import { useNavigation } from "@react-navigation/native";
+import { colors } from "../../assets/theme";
+import { supabase } from "../libs/supabase";
+import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator";
+Lalu tambahkan fungsi berikut pada file AddBlogForm.jsx
+const handleImagePick = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permissionResult.granted) {
+      Alert.alert(
+        "Permission required",
+        "Permission to access the camera is required.",
+      );
+      return;
+    }
+    let result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 1,
+    });
+    console.log("result", result);
+    if (!result.canceled) {
+      const manipulatedResult = await ImageManipulator.manipulateAsync(
+        result.assets[0].uri,
+        [{ resize: { width: 1920, height: 1080 } }],
+        { compress: 1, format: ImageManipulator.SaveFormat.JPEG },
+      );
+      setImage(manipulatedResult.uri);
+    }
+  };
+Kemudian untuk fungsi handleUpload yang terdapat pada AddBlogForm.jsx ganti menggunakkan source code berikut.
+const handleUpload = async () => {
+    let filename = image.substring(image.lastIndexOf("/") + 1);
+    const extension = filename.split(".").pop();
+    const name = filename.split(".").slice(0, -1).join(".");
+    filename = name + Date.now() + "." + extension;
+    const fileImage = await fetch(image);
+    const arrayBuffer = await fileImage.arrayBuffer();
+    setLoading(true);
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("woco")
+      .upload(filename, arrayBuffer, {
+        contentType: "image/jpeg",
+        upsert: true,
+      });
+    if (uploadError) {
+      console.error("Upload Error:", uploadError);
+      Alert.alert("Error", uploadError.message);
+      setLoading(false);
+      return;
+    }
+    const {
+      data: { publicUrl },
+    } = await supabase.storage.from("woco").getPublicUrl(filename);
+    try {
+      const { data: insertData, error: insertError } = await supabase.from("blogs").insert({
+        title: blogData.title,
+        category: blogData.category.name,
+        image: publicUrl,
+        content: blogData.content,
+        totalComments: blogData.totalComments,
+        totalLikes: blogData.totalLikes,
+        createdAt: new Date(),
+      });
+      if (insertError) {
+        console.error("Insert Error:", insertError);
+        Alert.alert("Error", insertError.message);
+        setLoading(false);
+        return;
+      }
+      setLoading(false);
+      navigation.navigate("MainApp", { screen: "Profile" });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+Kemudian pada return yang berada di dalam file AddBlogForm.jsx ganti dengan source code berikut
+<SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <ArrowLeft color={colors.black()} variant="Linear" size={24} />
+        </TouchableOpacity>
+        <View style={{ flex: 1, alignItems: "center" }}>
+          <Text style={styles.title}>Write blog</Text>
+        </View>
+      </View>
+      <ScrollView
+        contentContainerStyle={{
+          paddingHorizontal: 24,
+          paddingVertical: 10,
+          gap: 10,
+        }}
+      >
+        <View style={textInput.borderDashed}>
+          <TextInput
+            placeholder="Title"
+            value={blogData.title}
+            onChangeText={(text) => handleChange("title", text)}
+            placeholderTextColor={colors.grey(0.6)}
+            multiline
+            style={textInput.title}
+          />
+        </View>
+        <View style={[textInput.borderDashed, { minHeight: 250 }]}>
+          <TextInput
+            placeholder="Content"
+            value={blogData.content}
+            onChangeText={(text) => handleChange("content", text)}
+            placeholderTextColor={colors.grey(0.6)}
+            multiline
+            style={textInput.content}
+          />
+        </View>
+        <View style={[textInput.borderDashed]}>
+          <Text style={category.title}>Category</Text>
+          <View style={category.container}>
+            {dataCategory.map((item, index) => {
+              const bgColor =
+                item.id === blogData.category.id
+                  ? colors.black()
+                  : colors.grey(0.08);
+              const color =
+                item.id === blogData.category.id
+                  ? colors.white()
+                  : colors.grey();
+              return (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() =>
+                    handleChange("category", { id: item.id, name: item.name })
+                  }
+                  style={[category.item, { backgroundColor: bgColor }]}
+                >
+                  <Text style={[category.name, { color: color }]}>
+                    {item.name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+        {image ? (
+          <View style={{ position: "relative" }}>
+            <Image
+              style={{ width: "100%", height: 127, borderRadius: 5 }}
+              source={image}
+              contentFit="cover"
+            />
+            <TouchableOpacity
+              style={{
+                position: "absolute",
+                top: -5,
+                right: -5,
+                backgroundColor: colors.blue(),
+                borderRadius: 25,
+              }}
+              onPress={() => setImage(null)}
+            >
+              <Plus
+                size={20}
+                variant="Linear"
+                color={colors.white()}
+                style={{ transform: [{ rotate: "45deg" }] }}
+              />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity onPress={handleImagePick}>
+            <View
+              style={[
+                textInput.borderDashed,
+                {
+                  gap: 10,
+                  paddingVertical: 30,
+                  justifyContent: "center",
+                  alignItems: "center",
+                },
+              ]}
+            >
+              <SquarePlus color={colors.grey(0.6)} variant="Linear" size={42} />
+              <Text
+                style={{
+                  fontFamily: "Pjs-Regular",
+                  fontSize: 12,
+                  color: colors.grey(0.6),
+                }}
+              >
+                Upload Thumbnail
+              </Text>
+            </View>
+          </TouchableOpacity>
+        )}
+      </ScrollView>
+      <View style={styles.bottomBar}>
+        <TouchableOpacity style={styles.button} onPress={handleUpload}>
+          <Text style={styles.buttonLabel}>Upload</Text>
+        </TouchableOpacity>
+      </View>
+      {loading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color={colors.blue()} />
+        </View>
+      )}
+    </SafeAreaView>
+Pada EditBlogForm.jsx yang berada pada folder screens ganti menggunakkan source code berikut 
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
+import { Image } from "expo-image";
+import { ArrowLeft, AddSquare, Add } from "iconsax-react-native";
+import { useNavigation } from "@react-navigation/native";
+import { colors } from "../../assets/theme";
+import { supabase } from "../libs/supabase";
+import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator";
+import { SafeAreaView } from "react-native-safe-area-context";
+const EditBlogForm = ({ route }) => {
+  const { blogId } = route.params;
+  const dataCategory = [
+    { id: 1, name: "Food" },
+    { id: 2, name: "Sports" },
+    { id: 3, name: "Technology" },
+    { id: 4, name: "Fashion" },
+    { id: 5, name: "Health" },
+    { id: 6, name: "Lifestyle" },
+    { id: 7, name: "Music" },
+    { id: 8, name: "Car" },
+  ];
+  const [blogData, setBlogData] = useState({
+    title: "",
+    content: "",
+    category: {},
+    totalLikes: 0,
+    totalComments: 0,
+  });
+  const [image, setImage] = useState(null);
+  const [oldImage, setOldImage] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const navigation = useNavigation();
+  const handleChange = (key, value) => {
+    setBlogData({
+      ...blogData,
+      [key]: value,
+    });
+  };
+  useEffect(() => {
+    const fetchBlog = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("blogs")
+          .select("*")
+          .eq("id", blogId)
+          .single();
+        if (error) throw error;
+        if (data) {
+          const findCategory = dataCategory.find(
+            (cat) => cat.name === data.category,
+          );
+          setBlogData({
+            title: data.title,
+            content: data.content,
+            category: findCategory || { id: 0, name: data.category },
+            totalLikes: data.totalLikes || 0,
+            totalComments: data.totalComments || 0,
+          });
+          setOldImage(data.image);
+          setImage(data.image);
+        }
+      } catch (error) {
+        console.error("Error fetching blog:", error);
+        Alert.alert("Error", "Failed to fetch blog data");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBlog();
+  }, [blogId]);
+  const handleImagePick = async () => {
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      Alert.alert(
+        "Permission required",
+        "Permission to access the gallery is required.",
+      );
+      return;
+    }
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaType.Images,
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 1,
+    });
+    if (!result.canceled) {
+      const manipulatedResult = await ImageManipulator.manipulateAsync(
+        result.assets[0].uri,
+        [{ resize: { width: 1920 } }],
+        { compress: 1, format: ImageManipulator.SaveFormat.JPEG },
+      );
+      setImage(manipulatedResult.uri);
+    }
+  };
+  const handleUpdate = async () => {
+    if (
+      !blogData.title ||
+      !blogData.content ||
+      !blogData.category.name ||
+      !image
+    ) {
+      Alert.alert("Error", "Please fill all fields and select an image.");
+      return;
+    }
+    setLoading(true);
+    try {
+      let publicUrl = oldImage;
+      if (image !== oldImage) {
+        let filename = image.substring(image.lastIndexOf("/") + 1);
+        const extension = filename.split(".").pop();
+        const name = filename.split(".").slice(0, -1).join(".");
+        filename = name + Date.now() + "." + extension;
+        const response = await fetch(image);
+        const arrayBuffer = await response.arrayBuffer();
+        const { error: uploadError } = await supabase.storage
+          .from("woco")
+          .upload(filename, arrayBuffer, {
+            contentType: "image/jpeg",
+          });
+        if (uploadError) throw uploadError;
+        const {
+          data: { publicUrl: newUrl },
+        } = supabase.storage.from("woco").getPublicUrl(filename);
+        publicUrl = newUrl;
+      }
+      const { error } = await supabase
+        .from("blogs")
+        .update({
+          title: blogData.title,
+          category: blogData.category.name,
+          image: publicUrl,
+          content: blogData.content,
+        })
+        .eq("id", blogId);
+      if (error) throw error;
+      setLoading(false);
+      navigation.navigate("BlogDetail", { blogId });
+    } catch (error) {
+      console.error(error);
+      setLoading(false);
+      Alert.alert("Error", "Failed to update blog");
+    }
+  };
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <ArrowLeft color={colors.black()} variant="Linear" size={24} />
+        </TouchableOpacity>
+        <View style={{ flex: 1, alignItems: "center" }}>
+          <Text style={styles.title}>Edit blog</Text>
+        </View>
+      </View>
+      <ScrollView
+        contentContainerStyle={{
+          paddingHorizontal: 24,
+          paddingVertical: 10,
+          gap: 10,
+        }}
+      >
+        <View style={textInput.borderDashed}>
+          <TextInput
+            placeholder="Title"
+            value={blogData.title}
+            onChangeText={(text) => handleChange("title", text)}
+            placeholderTextColor={colors.grey(0.6)}
+            multiline
+            style={textInput.title}
+          />
+        </View>
+        <View style={[textInput.borderDashed, { minHeight: 250 }]}>
+          <TextInput
+            placeholder="Content"
+            value={blogData.content}
+            onChangeText={(text) => handleChange("content", text)}
+            placeholderTextColor={colors.grey(0.6)}
+            multiline
+            style={textInput.content}
+          />
+        </View>
+        <View style={[textInput.borderDashed]}>
+          <Text
+            style={{
+              fontSize: 12,
+              fontFamily: "Pjs-Regular",
+              color: colors.grey(0.6),
+            }}
+          >
+            Category
+          </Text>
+          <View style={category.container}>
+            {dataCategory.map((item, index) => {
+              const bgColor =
+                item.id === blogData.category.id
+                  ? colors.black()
+                  : colors.grey(0.08);
+              const color =
+                item.id === blogData.category.id
+                  ? colors.white()
+                  : colors.grey();
+              return (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() =>
+                    handleChange("category", { id: item.id, name: item.name })
+                  }
+                  style={[category.item, { backgroundColor: bgColor }]}
+                >
+                  <Text style={[category.name, { color: color }]}>
+                    {item.name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+        {image ? (
+          <View style={{ position: "relative" }}>
+            <Image
+              style={{ width: "100%", height: 127, borderRadius: 5 }}
+              source={image}
+              contentFit="cover"
+            />
+            <TouchableOpacity
+              style={{
+                position: "absolute",
+                top: -5,
+                right: -5,
+                backgroundColor: colors.blue(),
+                borderRadius: 25,
+              }}
+              onPress={() => setImage(null)}
+            >
+              <Add
+                size={20}
+                variant="Linear"
+                color={colors.white()}
+                style={{ transform: [{ rotate: "45deg" }] }}
+              />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity onPress={handleImagePick}>
+            <View
+              style={[
+                textInput.borderDashed,
+                {
+                  gap: 10,
+                  paddingVertical: 30,
+                  justifyContent: "center",
+                  alignItems: "center",
+                },
+              ]}
+            >
+              <AddSquare color={colors.grey(0.6)} variant="Linear" size={42} />
+              <Text
+                style={{
+                  fontFamily: "Pjs-Regular",
+                  fontSize: 12,
+                  color: colors.grey(0.6),
+                }}
+              >
+                Upload Thumbnail
+              </Text>
+            </View>
+          </TouchableOpacity>
+        )}
+      </ScrollView>
+      <View style={styles.bottomBar}>
+        <TouchableOpacity style={styles.button} onPress={handleUpdate}>
+          <Text style={styles.buttonLabel}>Update</Text>
+        </TouchableOpacity>
+      </View>
+      {loading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color={colors.blue()} />
+        </View>
+      )}
+    </SafeAreaView>
+  );
+};
+export default EditBlogForm;
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.white(),
+  },
+  header: {
+    paddingHorizontal: 24,
+    flexDirection: "row",
+    alignItems: "center",
+    height: 52,
+    elevation: 8,
+    paddingTop: 8,
+    paddingBottom: 4,
+  },
+  title: {
+    fontFamily: "Pjs-Bold",
+    fontSize: 16,
+    color: colors.black(),
+  },
+  bottomBar: {
+    backgroundColor: colors.white(),
+    alignItems: "flex-end",
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+  },
+  button: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: colors.blue(),
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  buttonLabel: {
+    fontSize: 14,
+    fontFamily: "Pjs-SemiBold",
+    color: colors.white(),
+  },
+  loadingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: colors.black(0.4),
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});
+const textInput = StyleSheet.create({
+  borderDashed: {
+    borderStyle: "dashed",
+    borderWidth: 1,
+    borderRadius: 5,
+    padding: 10,
+    borderColor: colors.grey(0.4),
+  },
+  title: {
+    fontSize: 16,
+    fontFamily: "Pjs-SemiBold",
+    color: colors.black(),
+    padding: 0,
+  },
+  content: {
+    fontSize: 12,
+    fontFamily: "Pjs-Regular",
+    color: colors.black(),
+    padding: 0,
+  },
+});
+const category = StyleSheet.create({
+  title: {
+    fontSize: 12,
+    fontFamily: "Pjs-Regular",
+    color: colors.grey(0.6),
+  },
+  container: {
+    flexWrap: "wrap",
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 10,
+  },
+  item: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 25,
+  },
+  name: {
+    fontSize: 10,
+    fontFamily: "Pjs-Medium",
+  },
+});
+Jika sudah hasil tampilan akan seperti berikut.
+Selanjutnya buka file formatDate.js pada folder src/utils, ubah Source Code menjadi seperti berikut
+export const formatDate = createdAt => {
+    if (createdAt) {
+        const createdAtDate = new Date(createdAt);
+        const months = [
+            'Jan',
+            'Feb',
+            'Mar',
+            'Apr',
+            'May',
+            'Jun',
+            'Jul',
+            'Aug',
+            'Sep',
+            'Oct',
+            'Nov',
+            'Dec',
+        ];
+        const year = createdAtDate.getFullYear();
+        const month = months[createdAtDate.getMonth()];
+        const day = createdAtDate.getDate();
+        return `${month} ${day}, ${year}`;
+    } else {
+        return '';
+    }
+};
+Pada fungsi handleRegister yang berada pada folder screens di file Register.jsx ubah menjadi seperti berikut
+const handleRegister = async () => {
+    let errorMessage = "";
+    if (password !== confirmPassword) {
+      errorMessage = "Password dan konfirmasi password tidak cocok.";
+    } else if (password.length < 8) {
+      errorMessage = "Panjang kata sandi harus minimal 8 karakter.";
+    } else {
+      const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).+$/;
+      if (!passwordRegex.test(password)) {
+        errorMessage = "Password harus mengandung kombinasi huruf dan angka.";
+      }
+    }
+    if (errorMessage) {
+      Alert.alert("Error", errorMessage);
+      return;
+    }
+    setLoading(true);
+    try {
+      const { data: authData, error: signUpError } = await supabase.auth.signUp(
+        { email, password },
+      );
+      if (signUpError) throw signUpError;
+      const { error: insertError } = await supabase.from("users").upsert({
+        id: authData.user.id,
+        full_name: fullName,
+        email: email,
+        photo_url: `https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=2680&q=80`,
+        followers_count: 0,
+        following_count: 0,
+        total_post: 0,
+        created_at: new Date().toISOString(),
+      });
+      if (insertError) {
+        console.error("Insert error:", insertError);
+        throw insertError;
+      }
+      console.log("User added!");
+      setLoading(false);
+      navigation.navigate("Login");
+    } catch (error) {
+      setLoading(false);
+      console.log("Registration Error:", error);
+      Alert.alert("Error", error.message);
+    }
+  };
+Pada fungsi handleLogin yang berada pada folder screens di file Login.jsx ubah menjadi seperti berikut
+const handleLogin = async () => {
+    setLoading(true);
+    try{
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
+      if (error) {
+        if(error.message === "Invalid login credentials"){
+          Alert.alert("Error", "Email atau Password salah");
+        }
+        return;
+      }
+      const currentTime = new Date().getTime();
+      await AsyncStorage.setItem('userData', JSON.stringify({
+        token: data.session.access_token,
+        expires: currentTime + data.session.expires_in * 1000
+      }))
+  
+      setLoading(false);
+      navigation.navigate("MainApp");
+    }catch(error){
+      console.log(error);
+      Alert.alert("Error", error.message);
+      setLoading(false);
+    }
+  };
+Pada SplashScreens yang berada di dalam folder screens, ubah pada kode useEffect menjadi seperti ini
+useEffect(() => {
+    checkToken();
+  }, []);
+  const checkToken = async () => {
+    try {
+      const userDataJSON = await AsyncStorage.getItem("userData");
+      if (userDataJSON) {
+        const userData = JSON.parse(userDataJSON);
+        const { token, expires } = userData;
+        
+        if (token && expires) {
+          const currentTime = new Date().getTime();
+          if (currentTime <= expires) {
+            setTimeout(() => {
+              navigation.replace("MainApp");
+            }, 1500);
+          } else {
+            setTimeout(() => {
+              navigation.replace("Login");
+            }, 1500);
+          }
+        } else {
+          setTimeout(() => {
+            navigation.replace("Login");
+          }, 1500);
+        }
+      } else {
+        setTimeout(() => {
+          navigation.replace("Login");
+        }, 1500);
+      }
+    } catch (error) {
+      console.error("Error retrieving token data:", error);
+      setTimeout(() => {
+        navigation.replace("Login");
+      }, 1500);
+    }
+  };
+Tugas Praktikum
+Silahkan menerapkan Supabase pada project masing masing sesuai tema yang sudah ditentukan!

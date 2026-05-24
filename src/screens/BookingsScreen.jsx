@@ -6,12 +6,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import axios from 'axios';
+import { supabase } from '../libs/supabase';
 import { getSettings } from '../Data/settings';
 import { translate } from '../Data/translations';
 
 const { width } = Dimensions.get('window');
-const MOCKAPI_URL = "https://6a126eb278d0434e0d5d3393.mockapi.io/bookings";
 
 export default function BookingFormScreen({ route, navigation }) {
   const [days, setDays] = useState(route?.params?.days || 1);
@@ -87,10 +86,23 @@ export default function BookingFormScreen({ route, navigation }) {
         days,
         rentDate,
         totalPrice: total,
-        createdAt: new Date().toISOString(),
       };
+      // Mengirimkan request HTTP POST menggunakan SDK Supabase ke PostgreSQL
+      const { data, error } = await supabase
+        .from('bookings')
+        .insert([bookingData]);
 
-      await axios.post(MOCKAPI_URL, bookingData);
+      if (error) throw error;
+
+      // Membuat notifikasi otomatis
+      await supabase.from('notifications').insert([{
+        user_id: 1,
+        title: lang === 'id' ? 'Pemesanan Berhasil' : 'Booking Successful',
+        message: lang === 'id' 
+          ? `Hore! Pemesanan ${car.title} untuk ${days} hari berhasil dikonfirmasi.` 
+          : `Yay! Your booking for ${car.title} for ${days} days has been confirmed.`,
+        is_read: false
+      }]);
 
       Alert.alert(
         translate("bookingSuccessTitle", lang),
@@ -150,15 +162,25 @@ export default function BookingFormScreen({ route, navigation }) {
         <View style={styles.infoRow}>
           <View style={styles.infoBox}>
             <MaterialCommunityIcons name="gas-station" size={18} color="#4facfe" />
-            <Text style={styles.infoText}>{car.fuel}</Text>
+            <Text style={styles.infoText}>
+              {car.fuel === "Bensin"
+                ? (settings.language === "id" ? "Bensin" : "Petrol")
+                : car.fuel}
+            </Text>
           </View>
           <View style={styles.infoBox}>
             <MaterialCommunityIcons name="car-seat" size={18} color="#4facfe" />
-            <Text style={styles.infoText}>{car.seat}</Text>
+            <Text style={styles.infoText}>
+              {car.seat ? car.seat.replace(/Seat/i, settings.language === "id" ? "Kursi" : "Seats") : ""}
+            </Text>
           </View>
           <View style={styles.infoBox}>
             <MaterialCommunityIcons name="cog" size={18} color="#4facfe" />
-            <Text style={styles.infoText}>Matic</Text>
+            <Text style={styles.infoText}>
+              {car.transmission === "Automatic"
+                ? (settings.language === "id" ? "Otomatis" : "Automatic")
+                : (car.transmission === "Manual" ? "Manual" : (car.transmission || "Automatic"))}
+            </Text>
           </View>
         </View>
 

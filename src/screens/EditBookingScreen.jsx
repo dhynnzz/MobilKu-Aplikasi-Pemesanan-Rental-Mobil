@@ -17,12 +17,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors } from '../../assets/theme';
-import axios from 'axios';
 import { getSettings } from '../Data/settings';
 import { translate } from '../Data/translations';
+import { supabase } from '../libs/supabase';
 
 const { width } = Dimensions.get('window');
-const MOCKAPI_URL = "https://6a126eb278d0434e0d5d3393.mockapi.io/bookings";
 
 export default function EditBookingScreen({ route, navigation }) {
   const { booking } = route.params;
@@ -79,7 +78,12 @@ export default function EditBookingScreen({ route, navigation }) {
         totalPrice: total,
       };
 
-      await axios.put(`${MOCKAPI_URL}/${booking.id}`, updatedData);
+      const { error } = await supabase
+        .from('bookings')
+        .update(updatedData)
+        .eq('id', booking.id);
+
+      if (error) throw error;
 
       Alert.alert(
         lang === 'id' ? "Pembaruan Berhasil" : "Update Successful",

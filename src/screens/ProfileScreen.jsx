@@ -2,7 +2,6 @@ import React, { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { getFavorites, removeFavorite } from '../Data/favorites';
-import { getProfile, updateProfile } from '../Data/profile';
 import { getSettings, updateSettings } from '../Data/settings';
 import { translate } from '../Data/translations';
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, StatusBar, Modal, TextInput, Switch,Alert, Dimensions 
@@ -11,19 +10,20 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronRight, LogOut, Settings, Heart, Bell, HelpCircle, User, X, Phone, Mail, Check, Star,ShieldCheck,Globe,Moon,Camera
 } from 'lucide-react-native';
 import { colors } from '../../assets/theme';
-import { BlogList } from '../Data/blogs';
+import { supabase } from '../libs/supabase';
 
 const { width, height } = Dimensions.get('window');
 
 export default function ProfileScreen({ navigation }) {
   // STATE DATA PROFIL (Dapat diedit dinamis)
-  const [profile, setProfile] = useState(getProfile());
+  const [profile, setProfile] = useState({ name: '', email: '', phone: '', avatar: '' });
 
   // Form input sementara saat mengedit profil
-  const [editName, setEditName] = useState(profile.name);
-  const [editEmail, setEditEmail] = useState(profile.email);
-  const [editPhone, setEditPhone] = useState(profile.phone);
-  const [editAvatar, setEditAvatar] = useState(profile.avatar);
+  const [editName, setEditName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editAvatar, setEditAvatar] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
 
   // STATE NOTIFIKASI
   const [promoNotif, setPromoNotif] = useState(true);
@@ -37,16 +37,42 @@ export default function ProfileScreen({ navigation }) {
 
   // STATE MOBIL FAVORIT (ID Mobil favorit)
   const [favoriteIds, setFavoriteIds] = useState([]);
+  const [cars, setCars] = useState([]);
+  const [loadingCars, setLoadingCars] = useState(false);
+
+  const fetchCars = async () => {
+    try {
+      setLoadingCars(true);
+      const { data, error } = await supabase.from('cars').select('*');
+      if (error) throw error;
+      setCars(data);
+    } catch (error) {
+      console.error('Error fetching cars:', error);
+    } finally {
+      setLoadingCars(false);
+    }
+  };
+
+  const fetchProfile = async () => {
+    try {
+      const { data, error } = await supabase.from('users').select('*').eq('id', 1).single();
+      if (error) throw error;
+      if (data) {
+        setProfile(data);
+        setEditName(data.name);
+        setEditEmail(data.email);
+        setEditPhone(data.phone);
+        setEditAvatar(data.avatar);
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
 
   // Sinkronkan data profil terupdate & pengaturan terupdate dari global setiap kali halaman difokuskan
   useFocusEffect(
     useCallback(() => {
-      const data = getProfile();
-      setProfile(data);
-      setEditName(data.name);
-      setEditEmail(data.email);
-      setEditPhone(data.phone);
-      setEditAvatar(data.avatar);
+      fetchProfile();
 
       const appSettings = getSettings();
       setSettings(appSettings);
@@ -54,6 +80,7 @@ export default function ProfileScreen({ navigation }) {
       setDarkMode(appSettings.darkMode);
 
       setFavoriteIds(getFavorites());
+      fetchCars();
     }, [])
   );
 
@@ -135,7 +162,7 @@ export default function ProfileScreen({ navigation }) {
   };
 
   // Aksi simpan perubahan profil
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     const isIndo = settings.language === 'id';
     if (!editName.trim() || !editEmail.trim() || !editPhone.trim()) {
       Alert.alert(
@@ -144,19 +171,65 @@ export default function ProfileScreen({ navigation }) {
       );
       return;
     }
-    const updatedData = {
-      name: editName,
-      email: editEmail,
-      phone: editPhone,
-      avatar: editAvatar
-    };
-    updateProfile(updatedData); // Simpan ke data global
-    setProfile(updatedData); // Refresh state lokal
-    setModalEditVisible(false);
-    Alert.alert(
-      isIndo ? "Sukses" : "Success", 
-      isIndo ? "Data profil Anda berhasil diperbarui!" : "Your profile has been successfully updated!"
-    );
+
+    setIsUploading(true);
+    let finalAvatarUrl = editAvatar;
+
+    try {
+      if (editAvatar && editAvatar.startsWith('file://')) {
+        const filename = editAvatar.substring(editAvatar.lastIndexOf('/') + 1);
+        const extension = filename.split('.').pop() || 'jpg';
+        const name = filename.split('.').slice(0, -1).join('.');
+        const finalFilename = `${name}_${Date.now()}.${extension}`;
+        
+        const fileImage = await fetch(editAvatar);
+        const arrayBuffer = await fileImage.arrayBuffer();
+
+        const { error: uploadError } = await supabase.storage
+          .from('mobilku')
+          .upload(finalFilename, arrayBuffer, {
+            contentType: `image/${extension === 'jpg' ? 'jpeg' : extension}`,
+            upsert: false
+          });
+
+        if (uploadError) throw uploadError;
+
+        const { data: publicUrlData } = supabase.storage
+          .from('mobilku')
+          .getPublicUrl(finalFilename);
+
+        finalAvatarUrl = publicUrlData.publicUrl;
+      }
+
+      const updatedData = {
+        name: editName,
+        email: editEmail,
+        phone: editPhone,
+        avatar: finalAvatarUrl
+      };
+      
+      const { error: updateError } = await supabase
+        .from('users')
+        .update(updatedData)
+        .eq('id', 1);
+
+      if (updateError) throw updateError;
+      setProfile(updatedData);
+      setEditAvatar(finalAvatarUrl);
+      setModalEditVisible(false);
+      Alert.alert(
+        isIndo ? "Sukses" : "Success", 
+        isIndo ? "Data profil Anda berhasil diperbarui!" : "Your profile has been successfully updated!"
+      );
+    } catch (error) {
+      console.error("Gagal mengunggah:", error);
+      Alert.alert(
+        isIndo ? "Gagal" : "Failed",
+        isIndo ? "Gagal memperbarui profil/foto. Pastikan izin Storage telah diberikan." : "Failed to update profile/photo. Check Storage permissions."
+      );
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   // Aksi toggle mobil favorit
@@ -409,9 +482,9 @@ export default function ProfileScreen({ navigation }) {
                 placeholderTextColor={isDark ? '#666' : '#AAB'}
               />
 
-              <TouchableOpacity style={styles.primaryButton} activeOpacity={0.8} onPress={handleSaveProfile}>
+              <TouchableOpacity style={styles.primaryButton} activeOpacity={0.8} onPress={handleSaveProfile} disabled={isUploading}>
                 <Text style={styles.primaryButtonText}>
-                  {translate("saveChanges", settings.language)}
+                  {isUploading ? (settings.language === 'id' ? "Mengunggah..." : "Uploading...") : translate("saveChanges", settings.language)}
                 </Text>
               </TouchableOpacity>
             </ScrollView>
@@ -626,8 +699,10 @@ export default function ProfileScreen({ navigation }) {
                       : 'All rental cars that you like will be saved here.'}
                   </Text>
                 </View>
+              ) : loadingCars ? (
+                <Text style={[{ textAlign: 'center', marginTop: 20 }, isDark ? { color: '#FFF' } : { color: '#888' }]}>Loading...</Text>
               ) : (
-                BlogList
+                cars
                   .filter(car => favoriteIds.includes(car.id))
                   .map(car => (
                     <View key={car.id} style={[styles.favCard, isDark && { backgroundColor: '#2C2C2C', borderColor: '#3C3C3C' }]}>
