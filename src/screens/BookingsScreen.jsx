@@ -74,7 +74,15 @@ export default function BookingFormScreen({ route, navigation }) {
 
     setLoading(true);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        Alert.alert("Error", "Anda belum login.");
+        setLoading(false);
+        return;
+      }
+
       const bookingData = {
+        user_id: session.user.id,
         name,
         phone,
         ktp,
@@ -96,7 +104,7 @@ export default function BookingFormScreen({ route, navigation }) {
 
       // Membuat notifikasi otomatis
       await supabase.from('notifications').insert([{
-        user_id: 1,
+        user_id: session.user.id,
         title: lang === 'id' ? 'Pemesanan Berhasil' : 'Booking Successful',
         message: lang === 'id' 
           ? `Hore! Pemesanan ${car.title} untuk ${days} hari berhasil dikonfirmasi.` 

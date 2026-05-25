@@ -19,7 +19,9 @@ export default function Header() {
 
   const fetchProfile = async () => {
     try {
-      const { data, error } = await supabase.from('users').select('*').eq('id', 1).single();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const { data, error } = await supabase.from('users').select('*').eq('id', session.user.id).single();
       if (!error && data) {
         setProfile(data);
       }
@@ -30,10 +32,12 @@ export default function Header() {
 
   const fetchNotifications = async () => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
-        .eq('user_id', 1)
+        .eq('user_id', session.user.id)
         .order('created_at', { ascending: false });
       if (!error && data) {
         setNotifications(data);

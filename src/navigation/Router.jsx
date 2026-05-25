@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Platform, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Home, CalendarCheck, Clock, User } from 'lucide-react-native';
@@ -13,6 +14,9 @@ import HistoryScreen from '../screens/HistoryScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import EditBookingScreen from '../screens/EditBookingScreen';
 import SplashScreen from '../screens/SplashScreen';
+import LoginScreen from '../screens/LoginScreen';
+import RegisterScreen from '../screens/RegisterScreen';
+import { supabase } from '../libs/supabase';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -91,11 +95,62 @@ function MainTab() {
 }
 
 export default function Router() {
+  const [session, setSession] = React.useState(null);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    // Jalankan pengecekan session dan timer 2.5 detik secara paralel
+    Promise.all([
+      supabase.auth.getSession(),
+      new Promise(resolve => setTimeout(resolve, 2500))
+    ]).then(([ { data: { session } } ]) => {
+      setSession(session);
+      setIsLoading(false);
+    });
+
+    let authTimeout;
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      // Cek apakah sedang dalam proses registrasi
+      const isRegistering = await AsyncStorage.getItem('isRegistering');
+      if (isRegistering === 'true') {
+        return; // Abaikan perubahan navigasi saat proses daftar agar tidak kelap-kelip
+      }
+      
+      clearTimeout(authTimeout);
+      authTimeout = setTimeout(() => {
+        setSession(session);
+      }, 100);
+    });
+
+    return () => {
+      if (authListener?.subscription) {
+        authListener.subscription.unsubscribe();
+      }
+      clearTimeout(authTimeout);
+    };
+  }, []);
+
+  if (isLoading) {
+    return (
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Splash" component={SplashScreen} />
+      </Stack.Navigator>
+    );
+  }
+
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Splash">
-      <Stack.Screen name="Splash" component={SplashScreen} />
-      <Stack.Screen name="MainTab" component={MainTab} />
-      <Stack.Screen name="EditBooking" component={EditBookingScreen} />
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {session && session.user ? (
+        <>
+          <Stack.Screen name="MainTab" component={MainTab} />
+          <Stack.Screen name="EditBooking" component={EditBookingScreen} />
+        </>
+      ) : (
+        <>
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Register" component={RegisterScreen} />
+        </>
+      )}
     </Stack.Navigator>
   );
 }

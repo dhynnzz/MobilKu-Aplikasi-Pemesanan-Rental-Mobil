@@ -28,9 +28,13 @@ export default function HistoryScreen() {
 
   const getBookings = async () => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      
       const { data, error } = await supabase
         .from('bookings')
         .select('*')
+        .eq('user_id', session.user.id)
         .order('createdAt', { ascending: false });
 
       if (error) throw error;

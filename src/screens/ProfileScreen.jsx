@@ -4,10 +4,12 @@ import * as ImagePicker from 'expo-image-picker';
 import { getFavorites, removeFavorite } from '../Data/favorites';
 import { getSettings, updateSettings } from '../Data/settings';
 import { translate } from '../Data/translations';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, StatusBar, Modal, TextInput, Switch,Alert, Dimensions 
+import {
+  View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, StatusBar, Modal, TextInput, Switch, Alert, Dimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronRight, LogOut, Settings, Heart, Bell, HelpCircle, User, X, Phone, Mail, Check, Star,ShieldCheck,Globe,Moon,Camera
+import {
+  ChevronRight, LogOut, Settings, Heart, Bell, HelpCircle, User, X, Phone, Mail, Check, Star, ShieldCheck, Globe, Moon, Camera
 } from 'lucide-react-native';
 import { colors } from '../../assets/theme';
 import { supabase } from '../libs/supabase';
@@ -55,7 +57,10 @@ export default function ProfileScreen({ navigation }) {
 
   const fetchProfile = async () => {
     try {
-      const { data, error } = await supabase.from('users').select('*').eq('id', 1).single();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      
+      const { data, error } = await supabase.from('users').select('*').eq('id', session.user.id).single();
       if (error) throw error;
       if (data) {
         setProfile(data);
@@ -138,12 +143,12 @@ export default function ProfileScreen({ navigation }) {
     const isIndo = settings.language === 'id';
     // Meminta izin akses galeri
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
+
     if (permissionResult.granted === false) {
       Alert.alert(
-        isIndo ? "Izin Ditolak" : "Permission Denied", 
-        isIndo 
-          ? "Izin untuk mengakses galeri ponsel Anda diperlukan untuk mengganti foto profil." 
+        isIndo ? "Izin Ditolak" : "Permission Denied",
+        isIndo
+          ? "Izin untuk mengakses galeri ponsel Anda diperlukan untuk mengganti foto profil."
           : "Permission to access your phone gallery is required to change your profile picture."
       );
       return;
@@ -163,10 +168,13 @@ export default function ProfileScreen({ navigation }) {
 
   // Aksi simpan perubahan profil
   const handleSaveProfile = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
     const isIndo = settings.language === 'id';
     if (!editName.trim() || !editEmail.trim() || !editPhone.trim()) {
       Alert.alert(
-        isIndo ? "Input Gagal" : "Input Failed", 
+        isIndo ? "Input Gagal" : "Input Failed",
         isIndo ? "Nama, email, dan nomor telepon tidak boleh kosong." : "Name, email, and phone number cannot be empty."
       );
       return;
@@ -181,7 +189,7 @@ export default function ProfileScreen({ navigation }) {
         const extension = filename.split('.').pop() || 'jpg';
         const name = filename.split('.').slice(0, -1).join('.');
         const finalFilename = `${name}_${Date.now()}.${extension}`;
-        
+
         const fileImage = await fetch(editAvatar);
         const arrayBuffer = await fileImage.arrayBuffer();
 
@@ -207,18 +215,18 @@ export default function ProfileScreen({ navigation }) {
         phone: editPhone,
         avatar: finalAvatarUrl
       };
-      
+
       const { error: updateError } = await supabase
         .from('users')
         .update(updatedData)
-        .eq('id', 1);
+        .eq('id', session.user.id);
 
       if (updateError) throw updateError;
       setProfile(updatedData);
       setEditAvatar(finalAvatarUrl);
       setModalEditVisible(false);
       Alert.alert(
-        isIndo ? "Sukses" : "Success", 
+        isIndo ? "Sukses" : "Success",
         isIndo ? "Data profil Anda berhasil diperbarui!" : "Your profile has been successfully updated!"
       );
     } catch (error) {
@@ -237,8 +245,8 @@ export default function ProfileScreen({ navigation }) {
     const isIndo = settings.language === 'id';
     Alert.alert(
       isIndo ? "Hapus Favorit" : "Remove Favorite",
-      isIndo 
-        ? `Apakah Anda yakin ingin menghapus ${carName} dari daftar mobil favorit Anda?` 
+      isIndo
+        ? `Apakah Anda yakin ingin menghapus ${carName} dari daftar mobil favorit Anda?`
         : `Are you sure you want to remove ${carName} from your favorite cars?`,
       [
         { text: isIndo ? "Batal" : "Cancel", style: "cancel" },
@@ -255,57 +263,45 @@ export default function ProfileScreen({ navigation }) {
   };
 
   // Aksi keluar akun
-  const handleLogout = () => {
+  const handleLogout = async () => {
     const isIndo = settings.language === 'id';
     Alert.alert(
-      isIndo ? "Keluar Akun" : "Log Out",
-      isIndo 
-        ? "Apakah Anda yakin ingin keluar dari akun Anda saat ini?" 
-        : "Are you sure you want to log out of your current account?",
+      isIndo ? "Konfirmasi Keluar" : "Confirm Logout",
+      isIndo ? "Apakah Anda yakin ingin keluar dari akun ini?" : "Are you sure you want to log out of this account?",
       [
         { text: isIndo ? "Batal" : "Cancel", style: "cancel" },
         { 
           text: isIndo ? "Keluar" : "Log Out", 
           style: "destructive", 
-          onPress: () => {
-            Alert.alert(
-              isIndo ? "Keluar Sukses" : "Log Out Successful", 
-              isIndo ? "Anda telah berhasil keluar dari akun." : "You have successfully logged out.",
-              [
-                {
-                  text: "OK",
-                  onPress: () => {
-                    navigation.replace("Splash");
-                  }
-                }
-              ]
-            );
-          } 
+          onPress: async () => {
+            await supabase.auth.signOut();
+            // Tidak perlu navigasi manual karena Router.jsx menggunakan onAuthStateChange
+          }
         }
       ]
     );
   };
 
-  // Komponen Menu Item Profil Interaktif
+  // Komponen Menu Item Reusable Interaktif
   const MenuItem = ({ icon: Icon, title, onPress, isLogout = false }) => (
-    <TouchableOpacity 
-      style={[styles.menuItem, isDark && { borderBottomColor: '#2C2C2C' }]} 
-      activeOpacity={0.6} 
+    <TouchableOpacity
+      style={[styles.menuItem, isDark && { borderBottomColor: '#2C2C2C' }]}
+      activeOpacity={0.6}
       onPress={onPress}
     >
       <View style={styles.menuItemLeft}>
         <View style={[
-          styles.iconBox, 
-          isLogout 
+          styles.iconBox,
+          isLogout
             ? (isDark ? { backgroundColor: '#3A1E1E' } : { backgroundColor: '#FFF5F5' })
             : (isDark ? { backgroundColor: '#252B36' } : { backgroundColor: '#F0F7FF' })
         ]}>
           <Icon color={isLogout ? '#FF5252' : (isDark ? '#3B9EFE' : colors.blue)} size={20} />
         </View>
         <Text style={[
-          styles.menuTitle, 
-          isLogout 
-            ? { color: '#FF5252' } 
+          styles.menuTitle,
+          isLogout
+            ? { color: '#FF5252' }
             : (isDark ? { color: '#FFFFFF' } : { color: '#333' })
         ]}>{title}</Text>
       </View>
@@ -317,13 +313,13 @@ export default function ProfileScreen({ navigation }) {
     <SafeAreaView style={[styles.container, isDark && { backgroundColor: '#121212' }]}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={isDark ? '#121212' : '#FFF'} />
       <ScrollView showsVerticalScrollIndicator={false}>
-        
+
         {/* HEADER PROFIL DINAMIS */}
         <View style={[styles.profileHeader, isDark && { borderBottomColor: '#1A1A1A' }]}>
           <View style={[styles.avatarWrapper, isDark && { borderColor: '#3B9EFE' }]}>
-            <Image 
-              source={{ uri: profile.avatar || "https://i.pravatar.cc/100" }} 
-              style={styles.avatar} 
+            <Image
+              source={{ uri: profile.avatar || "https://i.pravatar.cc/100" }}
+              style={styles.avatar}
             />
           </View>
           <Text style={[styles.name, isDark && { color: '#FFFFFF' }]}>{profile.name}</Text>
@@ -336,26 +332,26 @@ export default function ProfileScreen({ navigation }) {
             {settings.language === 'id' ? 'Akun & Pengaturan' : 'Account & Settings'}
           </Text>
           <View style={[styles.menuGroup, isDark && { backgroundColor: '#121212' }]}>
-            <MenuItem 
-              icon={User} 
-              title={translate("editProfile", settings.language)} 
+            <MenuItem
+              icon={User}
+              title={translate("editProfile", settings.language)}
               onPress={() => {
                 setEditName(profile.name);
                 setEditEmail(profile.email);
                 setEditPhone(profile.phone);
                 setEditAvatar(profile.avatar);
                 setModalEditVisible(true);
-              }} 
+              }}
             />
-            <MenuItem 
-              icon={Bell} 
-              title={translate("notifications", settings.language)} 
-              onPress={() => setModalNotifVisible(true)} 
+            <MenuItem
+              icon={Bell}
+              title={translate("notifications", settings.language)}
+              onPress={() => setModalNotifVisible(true)}
             />
-            <MenuItem 
-              icon={Settings} 
-              title={translate("appSettings", settings.language)} 
-              onPress={() => setModalSettingsVisible(true)} 
+            <MenuItem
+              icon={Settings}
+              title={translate("appSettings", settings.language)}
+              onPress={() => setModalSettingsVisible(true)}
             />
           </View>
         </View>
@@ -366,10 +362,10 @@ export default function ProfileScreen({ navigation }) {
             {settings.language === 'id' ? 'Aktivitas' : 'Activity'}
           </Text>
           <View style={[styles.menuGroup, isDark && { backgroundColor: '#121212' }]}>
-            <MenuItem 
-              icon={Heart} 
-              title={translate("favoriteCars", settings.language)} 
-              onPress={() => setModalFavoriteVisible(true)} 
+            <MenuItem
+              icon={Heart}
+              title={translate("favoriteCars", settings.language)}
+              onPress={() => setModalFavoriteVisible(true)}
             />
           </View>
         </View>
@@ -380,18 +376,18 @@ export default function ProfileScreen({ navigation }) {
             {settings.language === 'id' ? 'Bantuan' : 'Support'}
           </Text>
           <View style={[styles.menuGroup, isDark && { backgroundColor: '#121212' }]}>
-            <MenuItem 
-              icon={HelpCircle} 
-              title={translate("helpCenter", settings.language)} 
+            <MenuItem
+              icon={HelpCircle}
+              title={translate("helpCenter", settings.language)}
               onPress={() => {
                 setActiveFaq(null);
                 setModalHelpVisible(true);
-              }} 
+              }}
             />
-            <MenuItem 
-              icon={LogOut} 
-              title={translate("logOut", settings.language)} 
-              isLogout={true} 
+            <MenuItem
+              icon={LogOut}
+              title={translate("logOut", settings.language)}
+              isLogout={true}
               onPress={handleLogout}
             />
           </View>
@@ -420,12 +416,12 @@ export default function ProfileScreen({ navigation }) {
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 30 }}>
-              
+
               {/* Klik Foto untuk Mengambil dari Galeri Lokal */}
               <View style={styles.modalAvatarContainer}>
-                <TouchableOpacity 
-                  style={[styles.modalAvatarWrapper, isDark && { borderColor: '#3B9EFE' }]} 
-                  activeOpacity={0.7} 
+                <TouchableOpacity
+                  style={[styles.modalAvatarWrapper, isDark && { borderColor: '#3B9EFE' }]}
+                  activeOpacity={0.7}
                   onPress={handleSelectLocalImage}
                 >
                   <Image source={{ uri: editAvatar || "https://i.pravatar.cc/100" }} style={styles.modalAvatar} />
@@ -443,7 +439,7 @@ export default function ProfileScreen({ navigation }) {
               </Text>
               <TextInput
                 style={[
-                  styles.textInput, 
+                  styles.textInput,
                   isDark && { backgroundColor: '#2C2C2C', borderColor: '#3C3C3C', color: '#FFFFFF' }
                 ]}
                 value={editName}
@@ -457,7 +453,7 @@ export default function ProfileScreen({ navigation }) {
               </Text>
               <TextInput
                 style={[
-                  styles.textInput, 
+                  styles.textInput,
                   isDark && { backgroundColor: '#2C2C2C', borderColor: '#3C3C3C', color: '#FFFFFF' }
                 ]}
                 value={editEmail}
@@ -472,7 +468,7 @@ export default function ProfileScreen({ navigation }) {
               </Text>
               <TextInput
                 style={[
-                  styles.textInput, 
+                  styles.textInput,
                   isDark && { backgroundColor: '#2C2C2C', borderColor: '#3C3C3C', color: '#FFFFFF' }
                 ]}
                 value={editPhone}
@@ -561,13 +557,13 @@ export default function ProfileScreen({ navigation }) {
               />
             </View>
 
-            <TouchableOpacity 
-              style={[styles.primaryButton, { marginTop: 30 }]} 
-              activeOpacity={0.8} 
+            <TouchableOpacity
+              style={[styles.primaryButton, { marginTop: 30 }]}
+              activeOpacity={0.8}
               onPress={() => {
                 setModalNotifVisible(false);
                 Alert.alert(
-                  translate("notifAlertTitle", settings.language), 
+                  translate("notifAlertTitle", settings.language),
                   translate("notifAlertSub", settings.language)
                 );
               }}
@@ -602,18 +598,18 @@ export default function ProfileScreen({ navigation }) {
               {translate("langLabel", settings.language)}
             </Text>
             <View style={styles.optionContainer}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[
-                  styles.optionCard, 
+                  styles.optionCard,
                   isDark && { backgroundColor: '#2C2C2C', borderColor: '#3C3C3C' },
                   language === 'id' && (isDark ? { borderColor: '#3B9EFE', backgroundColor: '#1F2E3D' } : styles.optionCardActive)
-                ]} 
+                ]}
                 onPress={() => setLanguage('id')}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                   <Globe size={18} color={language === 'id' ? (isDark ? '#3B9EFE' : colors.blue) : (isDark ? '#A0A0A5' : '#555')} />
                   <Text style={[
-                    styles.optionText, 
+                    styles.optionText,
                     isDark && { color: '#E0E0E0' },
                     language === 'id' && (isDark ? { color: '#3B9EFE', fontWeight: '700' } : styles.optionTextActive)
                   ]}>Bahasa Indonesia</Text>
@@ -621,18 +617,18 @@ export default function ProfileScreen({ navigation }) {
                 {language === 'id' && <Check size={18} color={isDark ? '#3B9EFE' : colors.blue} />}
               </TouchableOpacity>
 
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[
-                  styles.optionCard, 
+                  styles.optionCard,
                   isDark && { backgroundColor: '#2C2C2C', borderColor: '#3C3C3C' },
                   language === 'en' && (isDark ? { borderColor: '#3B9EFE', backgroundColor: '#1F2E3D' } : styles.optionCardActive)
-                ]} 
+                ]}
                 onPress={() => setLanguage('en')}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                   <Globe size={18} color={language === 'en' ? (isDark ? '#3B9EFE' : colors.blue) : (isDark ? '#A0A0A5' : '#555')} />
                   <Text style={[
-                    styles.optionText, 
+                    styles.optionText,
                     isDark && { color: '#E0E0E0' },
                     language === 'en' && (isDark ? { color: '#3B9EFE', fontWeight: '700' } : styles.optionTextActive)
                   ]}>English (US)</Text>
@@ -641,18 +637,18 @@ export default function ProfileScreen({ navigation }) {
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity 
-              style={[styles.primaryButton, { marginTop: 30 }]} 
-              activeOpacity={0.8} 
+            <TouchableOpacity
+              style={[styles.primaryButton, { marginTop: 30 }]}
+              activeOpacity={0.8}
               onPress={() => {
                 updateSettings({ language, darkMode: false });
                 setSettings({ language, darkMode: false }); // Trigger immediate re-render!
                 setModalSettingsVisible(false);
                 const isIndo = language === 'id';
                 Alert.alert(
-                  isIndo ? "Disimpan" : "Saved", 
-                  isIndo 
-                    ? `Bahasa disetel ke Bahasa Indonesia.` 
+                  isIndo ? "Disimpan" : "Saved",
+                  isIndo
+                    ? `Bahasa disetel ke Bahasa Indonesia.`
                     : `Language set to English.`
                 );
               }}
@@ -694,8 +690,8 @@ export default function ProfileScreen({ navigation }) {
                     {settings.language === 'id' ? 'Belum Ada Mobil Favorit' : 'No Favorite Cars Yet'}
                   </Text>
                   <Text style={[styles.emptyFavSubText, isDark && { color: '#A0A0A5' }]}>
-                    {settings.language === 'id' 
-                      ? 'Semua mobil sewa yang Anda beri tanda suka akan disimpan di sini.' 
+                    {settings.language === 'id'
+                      ? 'Semua mobil sewa yang Anda beri tanda suka akan disimpan di sini.'
                       : 'All rental cars that you like will be saved here.'}
                   </Text>
                 </View>
@@ -718,8 +714,8 @@ export default function ProfileScreen({ navigation }) {
                         </View>
                         <Text style={[styles.favPrice, isDark && { color: '#FFFFFF' }]}>{car.price}</Text>
                       </View>
-                      <TouchableOpacity 
-                        style={[styles.unfavBtn, isDark && { backgroundColor: '#1E1E1E' }]} 
+                      <TouchableOpacity
+                        style={[styles.unfavBtn, isDark && { backgroundColor: '#1E1E1E' }]}
                         onPress={() => handleRemoveFavorite(car.id, car.title)}
                       >
                         <Heart size={20} color="#FF5252" fill="#FF5252" />
@@ -761,28 +757,28 @@ export default function ProfileScreen({ navigation }) {
                 {faqData.map((faq, index) => {
                   const isOpen = activeFaq === index;
                   return (
-                    <View 
-                      key={index} 
+                    <View
+                      key={index}
                       style={[
-                        styles.faqCard, 
+                        styles.faqCard,
                         isDark && { backgroundColor: '#2C2C2C', borderColor: '#3C3C3C' },
                         isOpen && (isDark ? { borderColor: '#3B9EFE', backgroundColor: '#1E1E1E' } : styles.faqCardOpen)
                       ]}
                     >
-                      <TouchableOpacity 
-                        style={styles.faqQuestionRow} 
+                      <TouchableOpacity
+                        style={styles.faqQuestionRow}
                         activeOpacity={0.7}
                         onPress={() => setActiveFaq(isOpen ? null : index)}
                       >
                         <Text style={[
-                          styles.faqQuestionText, 
+                          styles.faqQuestionText,
                           isDark && { color: '#FFFFFF' },
                           isOpen && (isDark ? { color: '#3B9EFE', fontWeight: '700' } : styles.faqQuestionTextOpen)
                         ]}>{faq.q}</Text>
-                        <ChevronRight 
-                          size={18} 
-                          color={isOpen ? (isDark ? '#3B9EFE' : colors.blue) : (isDark ? '#666' : '#A0A0A5')} 
-                          style={{ transform: [{ rotate: isOpen ? '90deg' : '0deg' }] }} 
+                        <ChevronRight
+                          size={18}
+                          color={isOpen ? (isDark ? '#3B9EFE' : colors.blue) : (isDark ? '#666' : '#A0A0A5')}
+                          style={{ transform: [{ rotate: isOpen ? '90deg' : '0deg' }] }}
                         />
                       </TouchableOpacity>
                       {isOpen && (
@@ -797,7 +793,7 @@ export default function ProfileScreen({ navigation }) {
 
               {/* Box Info Darurat */}
               <View style={[
-                styles.emergencyBox, 
+                styles.emergencyBox,
                 isDark && { backgroundColor: '#1B3E24', borderColor: '#2E7D32' }
               ]}>
                 <ShieldCheck size={26} color={isDark ? '#81C784' : '#2E7D32'} />

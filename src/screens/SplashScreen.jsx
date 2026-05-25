@@ -30,13 +30,7 @@ export default function SplashScreen({ navigation }) {
         useNativeDriver: true,
       }),
     ]).start();
-
-    // Navigasi otomatis ke MainTab
-    const timer = setTimeout(() => {
-      navigation.replace("MainTab");
-    }, 500);
-
-    return () => clearTimeout(timer);
+    // Router.jsx akan secara otomatis meng-unmount Splash Screen ini setelah 2 detik
   }, []);
 
   return (
